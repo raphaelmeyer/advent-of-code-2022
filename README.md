@@ -29,8 +29,9 @@ Set default options when running `cabal test`
 
 ### ghcid
 
+_Does not yet reload when source files change._
+
 Install `ghcid` with `cabal install ghcid`.
 Start ghcid in a terminal.
 
-    cabal exec ghcid -- --command='cabal repl test:test'
-
+    cabal exec ghcid -- --command='cabal repl advent-of-code:test' --test main
