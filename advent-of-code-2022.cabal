@@ -12,6 +12,7 @@ common common-properties
     build-depends:
         base,
         containers,
+        split,
         text
 
 executable aoc
