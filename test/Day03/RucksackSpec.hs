@@ -39,3 +39,11 @@ spec = do
 
     it "should calcuate the priority sum" $ do
       prioritySum input `shouldBe` 157
+
+  describe "Badges" $ do
+    it "should find badges" $ do
+      let badges = findBadges exampleInput
+      badges `shouldBe` ['r', 'Z']
+
+    it "should calculate badge priority sum" $ do
+      badgePrioSum exampleInput `shouldBe` 70

@@ -13,6 +13,7 @@
     "editor.renderWhitespace": "boundary",
     "editor.formatOnSave": true,
     "haskell.manageHLS": "GHCup",
-    "haskell.formattingProvider": "ormolu"
+    "haskell.formattingProvider": "ormolu",
+    "editor.tabSize": 2
   }
 }
