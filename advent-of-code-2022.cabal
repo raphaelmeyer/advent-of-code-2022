@@ -27,7 +27,8 @@ library
     import: common-properties
     exposed-modules:
         Day01.Solution,
-        Day02.RockPaperScissors
+        Day02.RockPaperScissors,
+        Day03.Rucksack
     hs-source-dirs: src
     build-depends:
         megaparsec
@@ -40,6 +41,7 @@ test-suite test
     other-modules:
         Day01.SolutionSpec,
         Day02.RockPaperScissorsSpec
+        Day03.RucksackSpec
     hs-source-dirs: test
     build-depends:
         advent-of-code,
