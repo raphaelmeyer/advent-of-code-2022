@@ -22,19 +22,24 @@ executable aoc
     build-depends:
         advent-of-code,
         optparse-applicative
-        
+
 library
     import: common-properties
     exposed-modules:
-        Day01.Solution
+        Day01.Solution,
+        Day02.RockPaperScissors
     hs-source-dirs: src
+    build-depends:
+        megaparsec
+
 
 test-suite test
     import: common-properties
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     other-modules:
-        Day01.SolutionSpec
+        Day01.SolutionSpec,
+        Day02.RockPaperScissorsSpec
     hs-source-dirs: test
     build-depends:
         advent-of-code,

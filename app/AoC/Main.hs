@@ -4,6 +4,7 @@ import Control.Applicative ((<**>))
 import qualified Control.Applicative as Applicative
 import qualified Data.Map as Map
 import qualified Day01.Solution as Day01
+import qualified Day02.RockPaperScissors as Day02
 import qualified Options.Applicative as Opt
 
 newtype Options = Options {getDay :: Maybe Int} deriving (Show)
@@ -14,7 +15,9 @@ options = Options <$> Applicative.optional (Opt.option Opt.auto $ Opt.long "day"
 solutions :: Map.Map Int (IO ())
 solutions =
   Map.fromList
-    [(1, Day01.run)]
+    [ (1, Day01.run),
+      (2, Day02.run)
+    ]
 
 main :: IO ()
 main = do
