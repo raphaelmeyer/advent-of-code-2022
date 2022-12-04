@@ -3,7 +3,7 @@ module Main where
 import Control.Applicative ((<**>))
 import qualified Control.Applicative as Applicative
 import qualified Data.Map as Map
-import qualified Day01.Solution as Day01
+import qualified Day01.Calories as Day01
 import qualified Day02.RockPaperScissors as Day02
 import qualified Day03.Rucksack as Day03
 import qualified Day04.Cleanup as Day04

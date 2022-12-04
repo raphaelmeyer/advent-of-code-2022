@@ -26,7 +26,7 @@ executable aoc
 library
     import: common-properties
     exposed-modules:
-        Day01.Solution,
+        Day01.Calories,
         Day02.RockPaperScissors,
         Day03.Rucksack,
         Day04.Cleanup
@@ -40,7 +40,7 @@ test-suite test
     type: exitcode-stdio-1.0
     main-is: Spec.hs
     other-modules:
-        Day01.SolutionSpec,
+        Day01.CaloriesSpec,
         Day02.RockPaperScissorsSpec,
         Day03.RucksackSpec,
         Day04.CleanupSpec

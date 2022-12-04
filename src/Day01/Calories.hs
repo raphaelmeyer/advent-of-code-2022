@@ -1,4 +1,4 @@
-module Day01.Solution where
+module Day01.Calories where
 
 import qualified Data.Either as Either (rights)
 import Data.Functor ((<&>))

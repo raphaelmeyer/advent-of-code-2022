@@ -1,9 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Day01.SolutionSpec where
+module Day01.CaloriesSpec where
 
 import qualified Data.Text as Text
-import Day01.Solution as Day01
+import Day01.Calories as Day01
 import Test.Hspec
 
 exampleInput :: [Text.Text]
