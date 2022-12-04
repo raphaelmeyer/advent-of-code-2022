@@ -28,7 +28,8 @@ library
     exposed-modules:
         Day01.Solution,
         Day02.RockPaperScissors,
-        Day03.Rucksack
+        Day03.Rucksack,
+        Day04.Cleanup
     hs-source-dirs: src
     build-depends:
         megaparsec
@@ -40,8 +41,9 @@ test-suite test
     main-is: Spec.hs
     other-modules:
         Day01.SolutionSpec,
-        Day02.RockPaperScissorsSpec
-        Day03.RucksackSpec
+        Day02.RockPaperScissorsSpec,
+        Day03.RucksackSpec,
+        Day04.CleanupSpec
     hs-source-dirs: test
     build-depends:
         advent-of-code,
