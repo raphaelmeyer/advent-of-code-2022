@@ -29,7 +29,8 @@ library
         Day01.Calories,
         Day02.RockPaperScissors,
         Day03.Rucksack,
-        Day04.Cleanup
+        Day04.Cleanup,
+        Day05.SupplyStacks
     hs-source-dirs: src
     build-depends:
         megaparsec
@@ -43,7 +44,8 @@ test-suite test
         Day01.CaloriesSpec,
         Day02.RockPaperScissorsSpec,
         Day03.RucksackSpec,
-        Day04.CleanupSpec
+        Day04.CleanupSpec,
+        Day05.SupplyStacksSpec
     hs-source-dirs: test
     build-depends:
         advent-of-code,
