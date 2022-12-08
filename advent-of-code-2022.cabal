@@ -13,7 +13,8 @@ common common-properties
         base,
         containers,
         split,
-        text
+        text,
+        vector
 
 executable aoc
     import: common-properties
@@ -32,7 +33,8 @@ library
         Day04.Cleanup,
         Day05.SupplyStacks,
         Day06.Tuning,
-        Day07.NoSpace
+        Day07.NoSpace,
+        Day08.TreeHouse
     hs-source-dirs: src
     build-depends:
         megaparsec
@@ -49,7 +51,8 @@ test-suite test
         Day04.CleanupSpec,
         Day05.SupplyStacksSpec,
         Day06.TuningSpec,
-        Day07.NoSpaceSpec
+        Day07.NoSpaceSpec,
+        Day08.TreeHouseSpec
     hs-source-dirs: test
     build-depends:
         advent-of-code,
