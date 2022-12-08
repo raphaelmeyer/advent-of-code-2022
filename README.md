@@ -35,3 +35,8 @@ Install `ghcid` with `cabal install ghcid`.
 Start ghcid in a terminal.
 
     cabal exec ghcid -- --command='cabal repl advent-of-code:test' --test main
+
+
+### Running Tests of a single day
+
+    cabal test --test-options="-m Day07"

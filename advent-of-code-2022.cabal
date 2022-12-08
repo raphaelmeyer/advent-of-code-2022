@@ -31,7 +31,8 @@ library
         Day03.Rucksack,
         Day04.Cleanup,
         Day05.SupplyStacks,
-        Day06.Tuning
+        Day06.Tuning,
+        Day07.NoSpace
     hs-source-dirs: src
     build-depends:
         megaparsec
@@ -47,7 +48,8 @@ test-suite test
         Day03.RucksackSpec,
         Day04.CleanupSpec,
         Day05.SupplyStacksSpec,
-        Day06.TuningSpec
+        Day06.TuningSpec,
+        Day07.NoSpaceSpec
     hs-source-dirs: test
     build-depends:
         advent-of-code,
