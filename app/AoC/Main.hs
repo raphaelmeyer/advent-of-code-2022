@@ -11,6 +11,7 @@ import qualified Day05.SupplyStacks as Day05
 import qualified Day06.Tuning as Day06
 import qualified Day07.NoSpace as Day07
 import qualified Day08.TreeHouse as Day08
+import qualified Day09.RopeBridge as Day09
 import qualified Options.Applicative as Opt
 
 newtype Options = Options {getDay :: Maybe Int} deriving (Show)
@@ -28,7 +29,8 @@ solutions =
       (5, Day05.run),
       (6, Day06.run),
       (7, Day07.run),
-      (8, Day08.run)
+      (8, Day08.run),
+      (9, Day09.run)
     ]
 
 main :: IO ()
