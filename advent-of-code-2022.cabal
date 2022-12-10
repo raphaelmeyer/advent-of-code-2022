@@ -35,7 +35,8 @@ library
         Day06.Tuning,
         Day07.NoSpace,
         Day08.TreeHouse,
-        Day09.RopeBridge
+        Day09.RopeBridge,
+        Day10.CathodeRayTube
     hs-source-dirs: src
     build-depends:
         megaparsec
@@ -54,7 +55,8 @@ test-suite test
         Day06.TuningSpec,
         Day07.NoSpaceSpec,
         Day08.TreeHouseSpec,
-        Day09.RopeBridgeSpec
+        Day09.RopeBridgeSpec,
+        Day10.CathodeRayTubeSpec
     hs-source-dirs: test
     build-depends:
         advent-of-code,

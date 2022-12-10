@@ -21,7 +21,7 @@ run = do
   let visitedLong = countVisitedByLongTail moves
 
   putStrLn ""
-  putStrLn "# Day 08 #"
+  putStrLn "# Day 09 #"
   putStrLn ""
   putStrLn $ "Part I : " ++ show visited
   putStrLn $ "Part II : " ++ show visitedLong
