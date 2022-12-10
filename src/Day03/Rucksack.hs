@@ -1,34 +1,27 @@
 module Day03.Rucksack where
 
+import qualified AoC.Puzzle as Puzzle
 import qualified Data.Char as Char
-import Data.Functor ((<&>))
 import qualified Data.List.Split as Split (chunksOf)
 import Data.Maybe (listToMaybe, mapMaybe)
 import qualified Data.Text as Text
+import Data.Tuple.Extra ((&&&))
+
+solver :: Puzzle.Solver
+solver = Puzzle.Solver 3 "🎒 Rucksack Reorganization" solve
+
+solve :: String -> Puzzle.Solution
+solve = (partOne &&& partTwo) . Text.lines . Text.pack
+
+-- solution
+
+partOne :: [Text.Text] -> String
+partOne = show . prioritySum . parseInput
+
+partTwo :: [Text.Text] -> String
+partTwo = show . badgePrioSum
 
 type Rucksack = (Text.Text, Text.Text)
-
-run :: IO ()
-run = do
-  input <- readInput "data/day-03.txt"
-  let rucksacks = parseInput input
-  let priorities = prioritySum rucksacks
-  let badgeSum = badgePrioSum input
-
-  putStrLn ""
-  putStrLn "# Day 03 #"
-  putStrLn ""
-  putStrLn $ "Part I : " ++ show priorities
-  putStrLn $ "Part II : " ++ show badgeSum
-
-readInput :: String -> IO [Text.Text]
-readInput filename = readFile filename <&> Text.lines . Text.pack
-
-parseInput :: [Text.Text] -> [Rucksack]
-parseInput = map split
-  where
-    split items = Text.splitAt (middle items) items
-    middle = (`div` 2) . Text.length
 
 duplicateItems :: [Rucksack] -> [Char]
 duplicateItems = mapMaybe duplicateItem
@@ -56,3 +49,11 @@ findBadge (r : rs) = listToMaybe . Text.unpack . foldl search r $ rs
   where
     search candidates items = Text.filter (`Text.elem` items) candidates
 findBadge _ = Nothing
+
+-- parse input
+
+parseInput :: [Text.Text] -> [Rucksack]
+parseInput = map split
+  where
+    split items = Text.splitAt (middle items) items
+    middle = (`div` 2) . Text.length

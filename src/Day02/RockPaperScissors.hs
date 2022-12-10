@@ -1,11 +1,21 @@
 module Day02.RockPaperScissors where
 
+import qualified AoC.Puzzle as Puzzle
 import Control.Applicative (Alternative ((<|>)))
-import Data.Functor ((<&>))
 import qualified Data.Text as Text
+import Data.Tuple.Extra ((&&&))
+import qualified Data.Tuple.Extra as Tuple
 import Data.Void (Void)
 import qualified Text.Megaparsec as MP
 import Text.Megaparsec.Char as C (char, space)
+
+solver :: Puzzle.Solver
+solver = Puzzle.Solver 2 "🪨 Rock 📄 Paper ✂️ Scissors" solve
+
+solve :: String -> Puzzle.Solution
+solve = Tuple.both (show . totalScore) . (guessShapes &&& chooseShapes) . parseInput . Text.lines . Text.pack
+
+-- solution
 
 data Result = Lose | Draw | Win deriving (Eq, Show)
 
@@ -15,24 +25,8 @@ data Round = Round Shape Shape deriving (Eq, Show)
 
 data Strategy = Strategy Shape Result deriving (Eq, Show)
 
-run :: IO ()
-run = do
-  input <- readInput "data/day-02.txt"
-  let guide = parseInput input
-  let guessScore = totalScore . guessGuide $ guide
-  let guideScore = totalScore . chooseShapes $ guide
-
-  putStrLn ""
-  putStrLn "# Day 02 #"
-  putStrLn ""
-  putStrLn $ "Part I : " ++ show guessScore
-  putStrLn $ "Part II : " ++ show guideScore
-
-readInput :: String -> IO [Text.Text]
-readInput filename = readFile filename <&> Text.lines . Text.pack
-
-parseInput :: [Text.Text] -> [Strategy]
-parseInput = map parseRound
+guessShapes :: [Strategy] -> [Round]
+guessShapes = map guessShape
 
 chooseShapes :: [Strategy] -> [Round]
 chooseShapes = map chooseShape
@@ -64,14 +58,15 @@ outcomeScore (Round Scissors Rock) = 6
 outcomeScore (Round other me) | other == me = 3
 outcomeScore _ = 0
 
-guessGuide :: [Strategy] -> [Round]
-guessGuide = map guess
-  where
-    guess (Strategy other Lose) = Round other Rock
-    guess (Strategy other Draw) = Round other Paper
-    guess (Strategy other Win) = Round other Scissors
+guessShape :: Strategy -> Round
+guessShape (Strategy other Lose) = Round other Rock
+guessShape (Strategy other Draw) = Round other Paper
+guessShape (Strategy other Win) = Round other Scissors
 
 -- parse Input
+
+parseInput :: [Text.Text] -> [Strategy]
+parseInput = map parseRound
 
 type Parser = MP.Parsec Void Text.Text
 

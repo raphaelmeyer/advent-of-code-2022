@@ -2,29 +2,21 @@
 
 module Day09.RopeBridge where
 
+import qualified AoC.Puzzle as Puzzle
 import Control.Applicative (Alternative ((<|>)))
-import Data.Functor ((<&>))
 import qualified Data.Set as Set
 import qualified Data.Text as Text
+import Data.Tuple.Extra ((&&&))
 import Data.Void (Void)
 import qualified Text.Megaparsec as MP
 import qualified Text.Megaparsec.Char as C (space, string)
 import qualified Text.Megaparsec.Char.Lexer as L
 
--- runner
+solver :: Puzzle.Solver
+solver = Puzzle.Solver 9 "🐍 Rope Bridge" solve
 
-run :: IO ()
-run = do
-  input <- readInput "data/day-09.txt"
-  let moves = parseInput input
-  let visited = countVisitedByTail moves
-  let visitedLong = countVisitedByLongTail moves
-
-  putStrLn ""
-  putStrLn "# Day 09 #"
-  putStrLn ""
-  putStrLn $ "Part I : " ++ show visited
-  putStrLn $ "Part II : " ++ show visitedLong
+solve :: String -> Puzzle.Solution
+solve = (show . countVisitedByTail &&& show . countVisitedByLongTail) . parseInput . Text.lines . Text.pack
 
 -- solution
 
@@ -94,9 +86,6 @@ moveTail h (x, y) = case (dx, dy) of
     inRange = -1 <= dx && dx <= 1 && -1 <= dy && dy <= 1
 
 -- parse input
-
-readInput :: String -> IO [Text.Text]
-readInput filename = readFile filename <&> Text.lines . Text.pack
 
 parseInput :: [Text.Text] -> [Move]
 parseInput = map parseMove

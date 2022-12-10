@@ -1,8 +1,10 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
+import qualified AoC.Puzzle as Puzzle
 import Control.Applicative ((<**>))
 import qualified Control.Applicative as Applicative
-import qualified Data.Map as Map
 import qualified Day01.Calories as Day01
 import qualified Day02.RockPaperScissors as Day02
 import qualified Day03.Rucksack as Day03
@@ -20,29 +22,53 @@ newtype Options = Options {getDay :: Maybe Int} deriving (Show)
 options :: Opt.Parser Options
 options = Options <$> Applicative.optional (Opt.option Opt.auto $ Opt.long "day" <> Opt.help "run solution of a single day" <> Opt.metavar "DAY")
 
-solutions :: Map.Map Int (IO ())
+solutions :: [(Puzzle.Solver, String)]
 solutions =
-  Map.fromList
-    [ (1, Day01.run),
-      (2, Day02.run),
-      (3, Day03.run),
-      (4, Day04.run),
-      (5, Day05.run),
-      (6, Day06.run),
-      (7, Day07.run),
-      (8, Day08.run),
-      (9, Day09.run),
-      (10, Day10.run)
-    ]
+  [ (Day01.solver, "data/day-01.txt"),
+    (Day02.solver, "data/day-02.txt"),
+    (Day03.solver, "data/day-03.txt"),
+    (Day04.solver, "data/day-04.txt"),
+    (Day05.solver, "data/day-05.txt"),
+    (Day06.solver, "data/day-06.txt"),
+    (Day07.solver, "data/day-07.txt"),
+    (Day08.solver, "data/day-08.txt"),
+    (Day09.solver, "data/day-09.txt"),
+    (Day10.solver, "data/day-10.txt")
+  ]
+
+year :: String
+year = "2022"
+
+title :: String
+title = "🎅🎄 Advent of Code " ++ year ++ " 🎄🦌"
 
 main :: IO ()
 main = do
-  opts <- Opt.execParser (Opt.info (options <**> Opt.helper) (Opt.fullDesc <> Opt.progDesc "run advent of code 2022 solutions" <> Opt.header "Advent of Code 2022"))
+  opts <-
+    Opt.execParser
+      ( Opt.info
+          (options <**> Opt.helper)
+          (Opt.fullDesc <> Opt.progDesc ("run advent of code " ++ year ++ " solutions") <> Opt.header title)
+      )
+
+  putStrLn title
   runSolutions (getDay opts)
 
 runSolutions :: Maybe Int -> IO ()
-runSolutions Nothing = sequence_ . Map.elems $ solutions
-runSolutions (Just day) = runSolution $ Map.lookup day solutions
+runSolutions day = mapM_ runSolution . puzzles $ solutions
   where
-    runSolution (Just solution) = solution
-    runSolution Nothing = putStrLn $ "No solution for day " ++ show day
+    puzzles = case day of
+      Nothing -> id
+      Just day' -> filter ((== day') . Puzzle.day . fst)
+
+runSolution :: (Puzzle.Solver, String) -> IO ()
+runSolution (solver, file) = do
+  putStrLn ""
+  putStrLn $ "✨ Day " ++ show (Puzzle.day solver) ++ " : " ++ Puzzle.name solver ++ " ✨"
+  putStrLn ""
+
+  input <- readFile file
+  let solution = Puzzle.solve solver input
+
+  putStrLn $ "  ⭐ Part One : " ++ fst solution
+  putStrLn $ "  ⭐ Part Two : " ++ snd solution

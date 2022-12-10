@@ -2,25 +2,18 @@
 
 module Day06.Tuning where
 
-import Data.Functor ((<&>))
+import qualified AoC.Puzzle as Puzzle
 import qualified Data.List as List
 import qualified Data.Text as Text
+import Data.Tuple.Extra ((&&&))
 
-run :: IO ()
-run = do
-  input <- readInput "data/day-06.txt"
-  let line = head input
-  let packet = packetMarker line
-  let message = messageMarker line
+solver :: Puzzle.Solver
+solver = Puzzle.Solver 6 "📟 Tuning Trouble" solve
 
-  putStrLn ""
-  putStrLn "# Day 06 #"
-  putStrLn ""
-  putStrLn $ "Part I : " ++ show packet
-  putStrLn $ "Part II : " ++ show message
+solve :: String -> Puzzle.Solution
+solve = (show . packetMarker &&& show . messageMarker) . Text.pack
 
-readInput :: String -> IO [Text.Text]
-readInput filename = readFile filename <&> Text.lines . Text.pack
+-- solution
 
 packetMarker :: Text.Text -> Int
 packetMarker = startMarker 4

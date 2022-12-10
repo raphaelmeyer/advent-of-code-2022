@@ -2,30 +2,22 @@
 
 module Day07.NoSpace where
 
+import qualified AoC.Puzzle as Puzzle
 import Control.Applicative (Alternative ((<|>)))
-import Data.Functor ((<&>))
 import qualified Data.List as List
 import qualified Data.Set as Set
 import qualified Data.Text as Text
+import Data.Tuple.Extra ((&&&))
 import Data.Void (Void)
 import qualified Text.Megaparsec as MP
 import qualified Text.Megaparsec.Char as C (asciiChar, space, string)
 import qualified Text.Megaparsec.Char.Lexer as L
 
--- runner
+solver :: Puzzle.Solver
+solver = Puzzle.Solver 7 "💾 No Space Left On Device" solve
 
-run :: IO ()
-run = do
-  input <- readInput "data/day-07.txt"
-  let fs = parseInput input
-  let smallSum = smallFolderSum fs
-  let toDelete = smallestBigEnough fs
-
-  putStrLn ""
-  putStrLn "# Day 07 #"
-  putStrLn ""
-  putStrLn $ "Part I : " ++ show smallSum
-  putStrLn $ "Part II : " ++ show toDelete
+solve :: String -> Puzzle.Solution
+solve = (show . smallFolderSum &&& show . smallestBigEnough) . parseInput . Text.lines . Text.pack
 
 -- solution
 
@@ -63,9 +55,6 @@ smallestBigEnough fs = minimum candidates
     candidates = filter (>= required) sizes
 
 -- parse input
-
-readInput :: String -> IO [Text.Text]
-readInput filename = readFile filename <&> Text.lines . Text.pack
 
 parseInput :: [Text.Text] -> FileSystem
 parseInput = buildFileSystem . map parseLine

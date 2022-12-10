@@ -1,26 +1,25 @@
 module Day08.TreeHouse where
 
+import qualified AoC.Puzzle as Puzzle
 import qualified Data.Char as Char
-import Data.Functor ((<&>))
 import qualified Data.List as List
 import qualified Data.Text as Text
+import Data.Tuple.Extra ((&&&))
 import qualified Data.Vector as Vector
 
--- runner
-run :: IO ()
-run = do
-  input <- readInput "data/day-08.txt"
-  let grid = parseInput input
-  let visible = countVisible grid
+solver :: Puzzle.Solver
+solver = Puzzle.Solver 8 "🌳 Treetop Tree House" solve
 
-  let forest = makeForest grid
-  let score = highestScenicScore forest
+solve :: String -> Puzzle.Solution
+solve = (partOne &&& partTwo) . parseInput . Text.lines . Text.pack
 
-  putStrLn ""
-  putStrLn "# Day 08 #"
-  putStrLn ""
-  putStrLn $ "Part I : " ++ show visible
-  putStrLn $ "Part II : " ++ show score
+-- solution
+
+partOne :: Grid -> String
+partOne = show . countVisible
+
+partTwo :: Grid -> String
+partTwo = show . highestScenicScore . makeForest
 
 -- part one
 
@@ -108,9 +107,6 @@ at (i, j) forest = case (Vector.!?) forest j of
   Nothing -> Nothing
 
 -- parse input
-
-readInput :: String -> IO [Text.Text]
-readInput filename = readFile filename <&> Text.lines . Text.pack
 
 parseInput :: [Text.Text] -> Grid
 parseInput = map parseLine

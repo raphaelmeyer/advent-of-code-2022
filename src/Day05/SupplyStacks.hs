@@ -2,38 +2,34 @@
 
 module Day05.SupplyStacks where
 
-import Data.Functor ((<&>))
+import qualified AoC.Puzzle as Puzzle
 import qualified Data.Map.Strict as Map
 import qualified Data.Maybe as Maybe (listToMaybe, mapMaybe)
 import qualified Data.Text as Text
+import Data.Tuple.Extra ((&&&))
+import qualified Data.Tuple.Extra as Tuple
 import Data.Void (Void)
 import qualified Text.Megaparsec as MP
 import Text.Megaparsec.Char as C (space, string)
 import qualified Text.Megaparsec.Char.Lexer as L
 
+solver :: Puzzle.Solver
+solver = Puzzle.Solver 5 "📦 Supply Stacks" solve
+
+solve :: String -> Puzzle.Solution
+solve = Tuple.both (show . topCrates) . (partOne &&& partTwo) . parseInput . Text.lines . Text.pack
+
+-- solution
+
+partOne :: (Stacks, [Move]) -> Stacks
+partOne = uncurry rearrange9000
+
+partTwo :: (Stacks, [Move]) -> Stacks
+partTwo = uncurry rearrange9001
+
 data Move = Move {getCrates :: Int, getFrom :: Int, getTo :: Int} deriving (Show, Eq)
 
 type Stacks = Map.Map Int [Char]
-
-run :: IO ()
-run = do
-  input <- readInput "data/day-05.txt"
-  let (stacks, procedure) = parseInput input
-
-  let result = rearrange9000 stacks procedure
-  let message = topCrates result
-
-  let result' = rearrange9001 stacks procedure
-  let message' = topCrates result'
-
-  putStrLn ""
-  putStrLn "# Day 05 #"
-  putStrLn ""
-  putStrLn $ "Part I : " ++ show message
-  putStrLn $ "Part II : " ++ show message'
-
-readInput :: String -> IO [Text.Text]
-readInput filename = readFile filename <&> Text.lines . Text.pack
 
 rearrange9000 :: Stacks -> [Move] -> Stacks
 rearrange9000 = foldl rearrange9000'

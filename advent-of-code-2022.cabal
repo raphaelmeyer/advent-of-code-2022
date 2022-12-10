@@ -12,6 +12,7 @@ common common-properties
     build-depends:
         base,
         containers,
+        extra,
         split,
         text,
         vector
@@ -27,6 +28,7 @@ executable aoc
 library
     import: common-properties
     exposed-modules:
+        AoC.Puzzle,
         Day01.Calories,
         Day02.RockPaperScissors,
         Day03.Rucksack,

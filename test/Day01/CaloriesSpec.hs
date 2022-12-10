@@ -3,7 +3,7 @@
 module Day01.CaloriesSpec where
 
 import qualified Data.Text as Text
-import Day01.Calories as Day01
+import Day01.Calories as Calories
 import Test.Hspec
 
 exampleInput :: [Text.Text]
@@ -28,9 +28,9 @@ spec :: Spec
 spec = do
   describe "Food Calories" $ do
     it "return maximum sum of calories carried by one elf" $ do
-      let foods = Day01.parseInput exampleInput
-      Day01.mostCalories foods `shouldBe` (24000 :: Int)
+      let foods = Calories.parseInput exampleInput
+      Calories.mostCalories foods `shouldBe` (24000 :: Int)
 
     it "should return calories sum of top three packages" $ do
-      let foods = Day01.parseInput exampleInput
-      Day01.topThreeSum foods `shouldBe` 45000
+      let foods = Calories.parseInput exampleInput
+      Calories.topThreeSum foods `shouldBe` 45000

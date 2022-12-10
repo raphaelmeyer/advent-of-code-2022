@@ -23,13 +23,13 @@ spec = do
       input !! 1 `shouldBe` Strategy Paper Lose
 
     it "should calcuate the score for a round" $ do
-      let rounds = guessGuide input
+      let rounds = guessShapes input
       roundScore (rounds !! 0) `shouldBe` 8
       roundScore (rounds !! 1) `shouldBe` 1
       roundScore (rounds !! 2) `shouldBe` 6
 
     it "should calculate the total score" $ do
-      let guessed = guessGuide input
+      let guessed = guessShapes input
       totalScore guessed `shouldBe` 15
 
       let guide = chooseShapes input
