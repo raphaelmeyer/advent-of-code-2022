@@ -46,29 +46,54 @@ spec = do
 
     it "should parse monkeys" $ do
       Map.size monkeys `shouldBe` 4
-      (Map.lookup 2 monkeys) `shouldBe` Just (M.Monkey [79, 60, 97] (M.Mul M.Old M.Old) (M.Test 13 1 3) 0)
+      Map.lookup 2 monkeys `shouldBe` Just (M.Monkey [79, 60, 97] (M.Mul M.Old M.Old) (M.Test 13 1 3) 0)
 
-    it "should watch a round of monkey in the middle" $ do
-      let result = KeepAway.monkeyRound monkeys
-      (M.items <$> (Map.lookup 0 result)) `shouldBe` Just [20, 23, 27, 26]
-      (M.items <$> (Map.lookup 1 result)) `shouldBe` Just [2080, 25, 167, 207, 401, 1046]
-      (M.items <$> (Map.lookup 2 result)) `shouldBe` Just []
-      (M.items <$> (Map.lookup 3 result)) `shouldBe` Just []
+    describe "Watch monkeys play with a slight relief" $ do
+      it "should watch a round of monkey in the middle" $ do
+        let strategy = KeepAway.slightRelief monkeys
+        let result = KeepAway.monkeyRound strategy monkeys
+        (M.items <$> Map.lookup 0 result) `shouldBe` Just [20, 23, 27, 26]
+        (M.items <$> Map.lookup 1 result) `shouldBe` Just [2080, 25, 167, 207, 401, 1046]
+        (M.items <$> Map.lookup 2 result) `shouldBe` Just []
+        (M.items <$> Map.lookup 3 result) `shouldBe` Just []
 
-    it "should watch twenty rounds of monkey in the middle" $ do
-      let result = KeepAway.playRounds 20 monkeys
-      (M.items <$> (Map.lookup 0 result)) `shouldBe` Just [10, 12, 14, 26, 34]
-      (M.items <$> (Map.lookup 1 result)) `shouldBe` Just [245, 93, 53, 199, 115]
-      (M.items <$> (Map.lookup 2 result)) `shouldBe` Just []
-      (M.items <$> (Map.lookup 3 result)) `shouldBe` Just []
+      it "should watch twenty rounds of monkey in the middle" $ do
+        let result = KeepAway.playRounds KeepAway.SlightRelief 20 monkeys
+        (M.items <$> Map.lookup 0 result) `shouldBe` Just [10, 12, 14, 26, 34]
+        (M.items <$> Map.lookup 1 result) `shouldBe` Just [245, 93, 53, 199, 115]
+        (M.items <$> Map.lookup 2 result) `shouldBe` Just []
+        (M.items <$> Map.lookup 3 result) `shouldBe` Just []
 
-    it "should count how many times a monkey inspects an item" $ do
-      let result = KeepAway.playRounds 20 monkeys
-      (M.inspected <$> (Map.lookup 0 result)) `shouldBe` Just 101
-      (M.inspected <$> (Map.lookup 1 result)) `shouldBe` Just 95
-      (M.inspected <$> (Map.lookup 2 result)) `shouldBe` Just 7
-      (M.inspected <$> (Map.lookup 3 result)) `shouldBe` Just 105
+      it "should count how many times a monkey inspects an item" $ do
+        let result = KeepAway.playRounds KeepAway.SlightRelief 20 monkeys
+        (M.inspected <$> Map.lookup 0 result) `shouldBe` Just 101
+        (M.inspected <$> Map.lookup 1 result) `shouldBe` Just 95
+        (M.inspected <$> Map.lookup 2 result) `shouldBe` Just 7
+        (M.inspected <$> Map.lookup 3 result) `shouldBe` Just 105
 
-    it "should figure out the most active monkeys" $ do
-      let result = KeepAway.playRounds 20 monkeys
-      KeepAway.business result `shouldBe` 10605
+      it "should figure out the most active monkeys" $ do
+        let result = KeepAway.playRounds KeepAway.SlightRelief 20 monkeys
+        KeepAway.business result `shouldBe` 10605
+
+    describe "Watch monkeys play with a no relief at all" $ do
+      it "should figure out monkey business" $ do
+        let result = KeepAway.playRounds KeepAway.NoRelief 20 monkeys
+        (M.inspected <$> Map.lookup 0 result) `shouldBe` Just 99
+        (M.inspected <$> Map.lookup 1 result) `shouldBe` Just 97
+        (M.inspected <$> Map.lookup 2 result) `shouldBe` Just 8
+        (M.inspected <$> Map.lookup 3 result) `shouldBe` Just 103
+
+      it "should figure out monkey business after 1000 rounds" $ do
+        let result = KeepAway.playRounds KeepAway.NoRelief 1000 monkeys
+        (M.inspected <$> Map.lookup 0 result) `shouldBe` Just 5204
+        (M.inspected <$> Map.lookup 1 result) `shouldBe` Just 4792
+        (M.inspected <$> Map.lookup 2 result) `shouldBe` Just 199
+        (M.inspected <$> Map.lookup 3 result) `shouldBe` Just 5192
+
+      it "should figure out the most active monkeys after 10000 rounds" $ do
+        let result = KeepAway.playRounds KeepAway.NoRelief 10000 monkeys
+        (M.inspected <$> Map.lookup 0 result) `shouldBe` Just 52166
+        (M.inspected <$> Map.lookup 1 result) `shouldBe` Just 47830
+        (M.inspected <$> Map.lookup 2 result) `shouldBe` Just 1938
+        (M.inspected <$> Map.lookup 3 result) `shouldBe` Just 52013
+        KeepAway.business result `shouldBe` 2713310158

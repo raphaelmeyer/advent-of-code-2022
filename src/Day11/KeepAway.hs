@@ -25,35 +25,41 @@ solve = (partOne &&& partTwo) . parseInput . Text.lines . Text.pack
 
 type Monkeys = Map.Map Int M.Monkey
 
+data Relief = SlightRelief | NoRelief deriving (Eq, Show)
+
 partOne :: Monkeys -> String
-partOne = show . business . playRounds 20
+partOne = show . business . playRounds SlightRelief 20
 
 partTwo :: Monkeys -> String
-partTwo _ = show (0 :: Int)
+partTwo = show . business . playRounds NoRelief 10000
 
 business :: Monkeys -> Int
 business = product . take 2 . reverse . List.sort . Map.foldl (\is m -> M.inspected m : is) []
 
-playRounds :: Int -> Monkeys -> Monkeys
-playRounds rounds monkeys = iterate monkeyRound monkeys !! rounds
+playRounds :: Relief -> Int -> Monkeys -> Monkeys
+playRounds relief rounds monkeys = iterate (monkeyRound strategy) monkeys !! rounds
+  where
+    strategy = case relief of
+      SlightRelief -> slightRelief monkeys
+      NoRelief -> noRelief monkeys
 
-monkeyRound :: Monkeys -> Monkeys
-monkeyRound monkeys = foldl monkeyTurn monkeys (Map.keys monkeys)
+monkeyRound :: ReliefStrategy -> Monkeys -> Monkeys
+monkeyRound relief monkeys = foldl (monkeyTurn relief) monkeys (Map.keys monkeys)
 
-monkeyTurn :: Monkeys -> Int -> Monkeys
-monkeyTurn monkeys key = foldl (inspectItem monkey) inspecting items
+monkeyTurn :: ReliefStrategy -> Monkeys -> Int -> Monkeys
+monkeyTurn relief monkeys key = foldl (inspectItem relief monkey) inspecting items
   where
     items = M.items . (Map.!) monkeys $ key
     inspecting = Map.adjust grabItems key monkeys
     grabItems m@M.Monkey {M.inspected = is} = m {M.items = [], M.inspected = is + length items}
     monkey = (Map.!) inspecting key
 
-inspectItem :: M.Monkey -> Monkeys -> Int -> Monkeys
-inspectItem monkey monkeys item = throwItem relief target monkeys
+inspectItem :: ReliefStrategy -> M.Monkey -> Monkeys -> Int -> Monkeys
+inspectItem relief monkey monkeys item = throwItem reliefed target monkeys
   where
     level = worry (M.operation monkey) item
-    relief = div level 3
-    target = case mod relief (M.div . M.test $ monkey) of
+    reliefed = relief level
+    target = case mod reliefed (M.div . M.test $ monkey) of
       0 -> M.whenTrue . M.test $ monkey
       _ -> M.whenFalse . M.test $ monkey
 
@@ -70,6 +76,16 @@ worry (M.Mul a b) level = opValue a level * opValue b level
 opValue :: M.Value -> Int -> Int
 opValue (M.Const v) _ = v
 opValue M.Old old = old
+
+type ReliefStrategy = Int -> Int
+
+slightRelief :: Monkeys -> ReliefStrategy
+slightRelief _ = (`div` 3)
+
+noRelief :: Monkeys -> ReliefStrategy
+noRelief monkeys = (`mod` m)
+  where
+    m = product . map (M.div . M.test) . Map.elems $ monkeys
 
 -- parse input
 
