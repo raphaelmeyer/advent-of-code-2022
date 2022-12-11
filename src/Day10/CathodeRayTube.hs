@@ -24,7 +24,15 @@ sumSignal :: [RegX] -> Int
 sumSignal rx = sum . map (`signalValue` rx) $ [20, 60, 100, 140, 180, 220]
 
 drawScreen :: [RegX] -> String
-drawScreen rx = ("\n\n" ++) . Text.unpack . Text.unlines . Text.chunksOf 40 . Text.pack . map (Bool.bool '⬛' '🟩' . drawPixel rx) $ [0 .. 239]
+drawScreen rx =
+  ("\n\n" ++)
+    . Text.unpack
+    . Text.unlines
+    . map (Text.append "   ")
+    . Text.chunksOf 40
+    . Text.pack
+    . map (Bool.bool '⬛' '🟩' . drawPixel rx)
+    $ [0 .. 239]
 
 evaluateX :: [Code] -> [RegX]
 evaluateX = snd . foldl execute (1, [RegX 1 1])
