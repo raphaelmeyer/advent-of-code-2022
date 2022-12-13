@@ -40,7 +40,8 @@ library
         Day09.RopeBridge,
         Day10.CathodeRayTube,
         Day11.KeepAway,
-        Day11.Monkey
+        Day11.Monkey,
+        Day12.HillClimbing
     hs-source-dirs: src
     build-depends:
         megaparsec
@@ -61,7 +62,8 @@ test-suite test
         Day08.TreeHouseSpec,
         Day09.RopeBridgeSpec,
         Day10.CathodeRayTubeSpec,
-        Day11.KeepAwaySpec
+        Day11.KeepAwaySpec,
+        Day12.HillClimbingSpec
     hs-source-dirs: test
     build-depends:
         advent-of-code,
