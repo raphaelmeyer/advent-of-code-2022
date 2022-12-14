@@ -18,6 +18,7 @@ import qualified Day10.CathodeRayTube as Day10
 import qualified Day11.KeepAway as Day11
 import qualified Day12.HillClimbing as Day12
 import qualified Day13.DistressSignal as Day13
+import qualified Day14.RegolithReservoir as Day14
 import qualified Options.Applicative as Opt
 
 newtype Options = Options {getDay :: Maybe Int} deriving (Show)
@@ -39,7 +40,8 @@ solutions =
     (Day10.solver, "data/day-10.txt"),
     (Day11.solver, "data/day-11.txt"),
     (Day12.solver, "data/day-12.txt"),
-    (Day13.solver, "data/day-13.txt")
+    (Day13.solver, "data/day-13.txt"),
+    (Day14.solver, "data/day-14.txt")
   ]
 
 year :: String
