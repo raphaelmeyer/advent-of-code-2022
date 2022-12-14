@@ -2,7 +2,9 @@ module Day13.DistressSignal where
 
 import qualified AoC.Puzzle as Puzzle
 import Control.Applicative (Alternative ((<|>)))
+import qualified Data.List as List
 import qualified Data.List.Split as List
+import qualified Data.Maybe as Maybe
 import qualified Data.Text as Text
 import Data.Tuple.Extra ((&&&))
 import Data.Void (Void)
@@ -28,7 +30,7 @@ partOne :: Signal -> String
 partOne = show . orderSum
 
 partTwo :: Signal -> String
-partTwo _ = show (1 :: Int)
+partTwo = show . decoderKey
 
 inOrder :: Packet -> Bool
 inOrder p = left p < right p
@@ -49,6 +51,18 @@ indices = map fst . filter snd . zip [1 ..] . map inOrder
 
 orderSum :: Signal -> Int
 orderSum = sum . indices
+
+two :: Data
+two = List [List [Value 2]]
+
+six :: Data
+six = List [List [Value 6]]
+
+decoderKey :: Signal -> Int
+decoderKey signal = index two * index six
+  where
+    index d = Maybe.fromMaybe undefined (List.elemIndex d sorted) + 1
+    sorted = List.sort . foldl (\ds p -> left p : right p : ds) [two, six] $ signal
 
 -- parse input
 

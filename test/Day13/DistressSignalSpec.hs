@@ -57,3 +57,6 @@ spec = do
     it "should find indices of packets in order" $ do
       Signal.indices signal `shouldBe` [1, 2, 4, 6]
       Signal.orderSum signal `shouldBe` 13
+
+    it "should find the decoder key" $ do
+      Signal.decoderKey signal `shouldBe` 140
