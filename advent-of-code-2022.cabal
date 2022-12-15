@@ -43,7 +43,8 @@ library
         Day11.Monkey,
         Day12.HillClimbing,
         Day13.DistressSignal,
-        Day14.RegolithReservoir
+        Day14.RegolithReservoir,
+        Day15.Beacon
     hs-source-dirs: src
     build-depends:
         megaparsec
@@ -67,7 +68,8 @@ test-suite test
         Day11.KeepAwaySpec,
         Day12.HillClimbingSpec,
         Day13.DistressSignalSpec,
-        Day14.RegolithReservoirSpec
+        Day14.RegolithReservoirSpec,
+        Day15.BeaconSpec
     hs-source-dirs: test
     build-depends:
         advent-of-code,
