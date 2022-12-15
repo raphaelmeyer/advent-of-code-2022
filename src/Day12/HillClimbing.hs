@@ -64,17 +64,28 @@ left (i, j) = (i - 1, j)
 right :: Pos -> Pos
 right (i, j) = (i + 1, j)
 
-walk :: Area -> Strategy -> Seq.Seq (Pos, Distance) -> Set.Set Pos -> Distance
-walk area strategy queue explored = if isGoal strategy (me, h) then dist else walk area strategy queue' explored'
+type Queue = Seq.Seq (Pos, Distance)
+
+type Explored = Set.Set Pos
+
+walk :: Area -> Strategy -> Queue -> Explored -> Distance
+walk area strategy queue explored = if isGoal strategy (me, height) then dist else walk area strategy queue' explored'
   where
-    (me, dist) = Maybe.fromMaybe (error . show $ explored) (Seq.lookup 0 queue)
-    h = Maybe.fromJust . atArea area $ me
-    adjacent = map (\p -> (p, dist + 1)) . filter (`Set.notMember` explored) . Maybe.mapMaybe (reachable . (\d -> d me)) $ [up, down, left, right]
-    reachable n = case atArea area n of
-      Just to -> if isReachable strategy (to - h) then Just n else Nothing
-      _ -> Nothing
-    explored' = foldr (Set.insert . fst) explored adjacent
-    queue' = foldl (Seq.|>) (Seq.drop 1 queue) adjacent
+    (me, dist) = Maybe.fromJust (Seq.lookup 0 queue)
+    height = Maybe.fromJust . atArea area $ me
+    explored' = foldr (Set.insert . fst) explored visited
+    queue' = foldl (Seq.|>) (Seq.drop 1 queue) visited
+    visited = visit . unexplored $ adjacent
+      where
+        adjacent = Maybe.mapMaybe (reachable . (\go -> go me)) [up, down, left, right]
+        reachable target = case atArea area target of
+          Just to -> if isReachable strategy (to - height) then Just target else Nothing
+          _ -> Nothing
+        unexplored = filter (`Set.notMember` explored)
+        visit = map (`tuple` (dist + 1))
+
+tuple :: a -> b -> (a, b)
+tuple a b = (a, b)
 
 -- parse input
 
