@@ -24,7 +24,7 @@ partOne :: [Sensor] -> String
 partOne = show . coveredInRow 2000000
 
 partTwo :: [Sensor] -> String
-partTwo _ = show (0 :: Int)
+partTwo = show . tuningFrequency (0, 4000000)
 
 type Pos = (Int, Int)
 
@@ -32,10 +32,35 @@ type Range = (Int, Int)
 
 data Sensor = Sensor {pos :: Pos, beacon :: Pos} deriving (Eq, Show)
 
-coveredInRow :: Int -> [Sensor] -> Int
-coveredInRow row sensors = intervalSize . foldl merge [] $ segments
+tuningFrequency :: Range -> [Sensor] -> Int
+tuningFrequency range@(start, end) sensors = 4000000 * x + y
   where
-    segments = List.sortBy (\a b -> compare (fst a) (fst b)) . Maybe.mapMaybe (coveredSegment row) $ sensors
+    scanned = trim range . map (`scanRow` sensors) $ [start .. end]
+    y = Maybe.fromMaybe undefined (List.findIndex gap scanned)
+    x = (+ 1) . snd . head $ (scanned !! y)
+
+trim :: Range -> [[Range]] -> [[Range]]
+trim (start, end) = map trimRow
+  where
+    trimRow = foldl trimRange []
+    trimRange rs (from, to)
+      | to < start = rs
+      | from > end = rs
+      | otherwise = (max start from, min to end) : rs
+
+gap :: [Range] -> Bool
+gap = (== 2) . length
+
+coveredInRow :: Int -> [Sensor] -> Int
+coveredInRow row = intervalSize . scanRow row
+
+scanRow :: Int -> [Sensor] -> [Range]
+scanRow row = mergeSegments . Maybe.mapMaybe (coveredSegment row)
+
+mergeSegments :: [Range] -> [Range]
+mergeSegments segments = foldl merge [] sorted
+  where
+    sorted = List.sortBy (\a b -> compare (fst a) (fst b)) segments
     merge [] (from, to) = [(from, to)]
     merge intervals@(i : is) (from, to)
       | snd i < from = (from, to) : intervals

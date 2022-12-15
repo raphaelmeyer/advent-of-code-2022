@@ -35,3 +35,6 @@ spec = do
 
     it "should find area in a certain row covered by sensors" $ do
       Beacon.coveredInRow 10 sensors `shouldBe` 26
+
+    it "should find the tuning frequency" $ do
+      Beacon.tuningFrequency (0, 20) sensors `shouldBe` 56000011
