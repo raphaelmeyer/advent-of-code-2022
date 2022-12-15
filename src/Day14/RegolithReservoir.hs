@@ -23,7 +23,7 @@ partOne :: Cave -> String
 partOne = show . sand . floodCave
 
 partTwo :: Cave -> String
-partTwo _ = show (2 :: Int)
+partTwo = show . sand . floodFloor
 
 type Pos = (Int, Int)
 
@@ -35,6 +35,9 @@ data Cave = Cave {rocks :: Rocks, abyss :: Int} deriving (Eq, Show)
 
 floodCave :: Cave -> Cave
 floodCave = iterate' dropSand
+
+floodFloor :: Cave -> Cave
+floodFloor = iterate' dropOnToFloor
 
 sand :: Cave -> Int
 sand = Map.size . Map.filter (== Sand) . rocks
@@ -50,6 +53,18 @@ fallingSand (x, y) cave
   | Map.notMember (x + 1, y + 1) (rocks cave) = fallingSand (x + 1, y + 1) cave
   | otherwise = Just cave {rocks = Map.insert (x, y) Sand (rocks cave)}
 
+dropOnToFloor :: Cave -> Maybe Cave
+dropOnToFloor = fallingToFloor (500, 0)
+
+fallingToFloor :: Pos -> Cave -> Maybe Cave
+fallingToFloor (x, y) cave
+  | Map.member (500, 0) (rocks cave) = Nothing
+  | y + 1 >= bedrock cave = Just cave {rocks = Map.insert (x, y) Sand (rocks cave)}
+  | Map.notMember (x, y + 1) (rocks cave) = fallingToFloor (x, y + 1) cave
+  | Map.notMember (x - 1, y + 1) (rocks cave) = fallingToFloor (x - 1, y + 1) cave
+  | Map.notMember (x + 1, y + 1) (rocks cave) = fallingToFloor (x + 1, y + 1) cave
+  | otherwise = Just cave {rocks = Map.insert (x, y) Sand (rocks cave)}
+
 iterate' :: (a -> Maybe a) -> a -> a
 iterate' f a = case f a of
   Just b -> iterate' f b
@@ -57,6 +72,9 @@ iterate' f a = case f a of
 
 exploreAbyss :: Rocks -> Int
 exploreAbyss = maximum . map snd . Map.keys . Map.filter (== Rock)
+
+bedrock :: Cave -> Int
+bedrock = (+ 2) . abyss
 
 -- parse input
 

@@ -57,6 +57,10 @@ spec = do
       let flooded = Regolith.floodCave cave
       Regolith.sand flooded `shouldBe` 24
 
+    it "should find a safe spot" $ do
+      let flooded = Regolith.floodFloor cave
+      Regolith.sand flooded `shouldBe` 93
+
 -- helper
 
 iterate' :: Int -> (a -> Maybe a) -> a -> Maybe a
