@@ -44,11 +44,11 @@ library
         Day12.HillClimbing,
         Day13.DistressSignal,
         Day14.RegolithReservoir,
-        Day15.Beacon
+        Day15.Beacon,
+        Day16.Valves
     hs-source-dirs: src
     build-depends:
         megaparsec
-
 
 test-suite test
     import: common-properties
@@ -69,7 +69,8 @@ test-suite test
         Day12.HillClimbingSpec,
         Day13.DistressSignalSpec,
         Day14.RegolithReservoirSpec,
-        Day15.BeaconSpec
+        Day15.BeaconSpec,
+        Day16.ValvesSpec
     hs-source-dirs: test
     build-depends:
         advent-of-code,
