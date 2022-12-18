@@ -46,6 +46,7 @@ library
         Day14.RegolithReservoir,
         Day15.Beacon,
         Day16.Valves,
+        Day17.PyroclasticFlow,
         Day18.BoilingBoulders
     hs-source-dirs: src
     build-depends:
@@ -72,6 +73,7 @@ test-suite test
         Day14.RegolithReservoirSpec,
         Day15.BeaconSpec,
         Day16.ValvesSpec,
+        Day17.PyroclasticFlowSpec,
         Day18.BoilingBouldersSpec
     hs-source-dirs: test
     build-depends:
