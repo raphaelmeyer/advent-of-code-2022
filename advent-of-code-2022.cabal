@@ -45,7 +45,8 @@ library
         Day13.DistressSignal,
         Day14.RegolithReservoir,
         Day15.Beacon,
-        Day16.Valves
+        Day16.Valves,
+        Day18.BoilingBoulders
     hs-source-dirs: src
     build-depends:
         megaparsec
@@ -70,7 +71,8 @@ test-suite test
         Day13.DistressSignalSpec,
         Day14.RegolithReservoirSpec,
         Day15.BeaconSpec,
-        Day16.ValvesSpec
+        Day16.ValvesSpec,
+        Day18.BoilingBouldersSpec
     hs-source-dirs: test
     build-depends:
         advent-of-code,
