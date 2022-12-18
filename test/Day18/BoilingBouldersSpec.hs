@@ -30,3 +30,6 @@ spec = do
 
     it "should measure the surface" $ do
       Boulder.surface boulder `shouldBe` 64
+
+    it "should measure the outer surface" $ do
+      Boulder.outerSurface boulder `shouldBe` 58
