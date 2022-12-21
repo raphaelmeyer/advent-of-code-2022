@@ -27,5 +27,9 @@ spec = do
       (tower !! 11) `shouldBe` 0b0010100
       (tower !! 16) `shouldBe` 0b0011110
 
--- it "should simulate more falling rocks" $ do
---   (length . Pyro.simulate 1000000000000 $ jets) `shouldBe` 1514285714288
+    it "should simulate more falling rocks" $ do
+      Pyro.simulate2 100 jets `shouldBe` (length . Pyro.simulate 100 $ jets)
+      Pyro.simulate2 1000 jets `shouldBe` (length . Pyro.simulate 1000 $ jets)
+      Pyro.simulate2 2022 jets `shouldBe` (length . Pyro.simulate 2022 $ jets)
+
+      Pyro.simulate2 1000000000000 jets `shouldBe` 1514285714288

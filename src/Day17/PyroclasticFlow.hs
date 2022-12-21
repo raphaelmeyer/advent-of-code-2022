@@ -4,8 +4,10 @@ module Day17.PyroclasticFlow where
 
 import qualified AoC.Puzzle as Puzzle
 import qualified Data.Bits as Bits
+import qualified Data.List as List
 import qualified Data.Text as Text
 import Data.Tuple.Extra ((&&&))
+import qualified Data.Vector as Vector
 
 solver :: Puzzle.Solver
 solver = Puzzle.Solver 17 "🟥 Pyroclastic Flow" solve
@@ -16,16 +18,18 @@ solve = (partOne &&& partTwo) . parseInput . Text.pack
 -- solution
 
 partOne :: [Jet] -> String
-partOne = show . tallness . simulate 2022
+partOne = show . length . simulate 2022
 
 partTwo :: [Jet] -> String
-partTwo _ = show (0 :: Int)
+partTwo = show . simulate2 1000000000000
 
 data Jet = PushLeft | PushRight deriving (Eq, Show)
 
 type Jets = [Jet]
 
 type Rock = [Int]
+
+type Tower = [Int]
 
 rockTypes :: [Rock]
 rockTypes =
@@ -42,16 +46,15 @@ rockTypes =
 rocks :: [Rock]
 rocks = map reverse rockTypes
 
-tallness :: [Int] -> Int
-tallness = length
+-- part one
 
-simulate :: Int -> [Jet] -> [Int]
+simulate :: Int -> [Jet] -> Tower
 simulate n jets = dropWhile (== 0) . fst . foldl simulateRock ([], cycle jets) $ (take n . cycle $ rocks)
 
-simulateRock :: ([Int], Jets) -> Rock -> ([Int], Jets)
+simulateRock :: (Tower, Jets) -> Rock -> (Tower, Jets)
 simulateRock (ts, jets) = simulateStep jets ([], equalize ts)
 
-simulateStep :: Jets -> ([Int], [Int]) -> Rock -> ([Int], Jets)
+simulateStep :: Jets -> ([Int], [Int]) -> Rock -> (Tower, Jets)
 simulateStep jets (top, []) rock = (addRock (top, []) pushed, tail jets)
   where
     pushed = tryPush top rock (head jets)
@@ -62,12 +65,12 @@ simulateStep jets (top, b : bottom) rock =
   where
     pushed = tryPush top rock (head jets)
 
-addRock :: ([Int], [Int]) -> Rock -> [Int]
+addRock :: ([Int], [Int]) -> Rock -> Tower
 addRock (top, bottom) [] = reverse top ++ bottom
 addRock ([], bottom) rock = reverse rock ++ bottom
 addRock (t : top, bottom) (r : rock) = addRock (top, (Bits..|.) t r : bottom) rock
 
-equalize :: [Int] -> [Int]
+equalize :: Tower -> Tower
 equalize ts
   | emptyLines > 3 = drop (emptyLines - 3) ts
   | emptyLines < 3 = replicate (3 - emptyLines) 0 ++ ts
@@ -87,10 +90,91 @@ doPush rock PushRight = if any (`Bits.testBit` 0) rock then rock else map (`Bits
 rockFits :: [Int] -> Rock -> Bool
 rockFits ts rock = all (\(t, r) -> (Bits..&.) t r == 0) (zip ts rock)
 
-printTower :: [Int] -> Text.Text
-printTower = Text.unlines . map printRow
+-- part two
+
+data State = State
+  { tower :: Tower,
+    numRocks :: Int,
+    jetIndex :: Int,
+    jetList :: Vector.Vector Jet,
+    rockIndex :: Int,
+    rockList :: Vector.Vector Rock,
+    patterns :: [((Tower, Int), Int)],
+    cycleLen :: Int
+  }
+  deriving (Eq, Show)
+
+simulate2 :: Int -> [Jet] -> Int
+simulate2 n jets = (length . tower $ untilTop) + cycleHeight * notSimulated
   where
-    printRow row = Text.pack . map (\b -> if Bits.testBit row b then '#' else '.') $ [6, 5 .. 0]
+    initial = State [] 0 0 (Vector.fromList jets) 0 (Vector.fromList rocks) [] 0
+    firstCycle = simulate2FindCycle initial
+    secondCycle = simulate2FindCycle (firstCycle {cycleLen = 0})
+    cycleHeight = (length . tower $ secondCycle) - (length . tower $ firstCycle)
+    remainingRocks = n - numRocks secondCycle
+    notSimulated = div remainingRocks (cycleLen secondCycle)
+    rocksRest = mod remainingRocks (cycleLen secondCycle)
+    untilTop = simulate2NSteps rocksRest secondCycle
+
+simulate2FindCycle :: State -> State
+simulate2FindCycle s
+  | cycleLen simulated > 0 = trimTower simulated
+  | otherwise = simulate2FindCycle simulated
+  where
+    rock = rockList s Vector.! rockIndex s
+    simulated = updateRockIndex . simulate2Step rock (s {tower = equalize (tower s)}) $ []
+
+simulate2NSteps :: Int -> State -> State
+simulate2NSteps n s
+  | n == 0 = trimTower s
+  | otherwise = simulate2NSteps (n - 1) simulated
+  where
+    rock = rockList s Vector.! rockIndex s
+    simulated = updateRockIndex . simulate2Step rock (s {tower = equalize (tower s)}) $ []
+
+simulate2Step :: Rock -> State -> [Int] -> State
+simulate2Step rock s top = dropRock pushed top . updateJetIndex $ s
+  where
+    jet = jetList s Vector.! jetIndex s
+    pushed = tryPush top rock jet
+
+dropRock :: Rock -> [Int] -> State -> State
+dropRock rock top s
+  | null (tower s) = s {tower = addRock (top, []) rock, numRocks = numRocks s + 1}
+  | otherwise =
+      if rockFits (t : top) rock
+        then simulate2Step rock (s {tower = bottom}) (t : top)
+        else s {tower = addRock (top, tower s) rock, numRocks = numRocks s + 1}
+  where
+    t = head (tower s)
+    bottom = drop 1 (tower s)
+
+updateJetIndex :: State -> State
+updateJetIndex s =
+  if new < Vector.length (jetList s)
+    then s {jetIndex = new}
+    else searchCycle (s {jetIndex = 0})
+  where
+    new = jetIndex s + 1
+
+updateRockIndex :: State -> State
+updateRockIndex s = s {rockIndex = mod (rockIndex s + 1) (Vector.length (rockList s))}
+
+searchCycle :: State -> State
+searchCycle s = searchPattern s top
+  where
+    top = take 50 (tower s)
+
+searchPattern :: State -> Tower -> State
+searchPattern s ts = case List.find (compare' (ts, rockIndex s)) (patterns s) of
+  Just p -> s {cycleLen = numRocks s - snd p, patterns = [pat]}
+  Nothing -> s {patterns = pat : patterns s}
+  where
+    compare' a (b, _) = a == b
+    pat = ((ts, rockIndex s), numRocks s)
+
+trimTower :: State -> State
+trimTower s = s {tower = dropWhile (== 0b0000000) (tower s)}
 
 -- parse input
 
