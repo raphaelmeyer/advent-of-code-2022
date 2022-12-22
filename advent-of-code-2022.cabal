@@ -47,10 +47,12 @@ library
         Day15.Beacon,
         Day16.Valves,
         Day17.PyroclasticFlow,
-        Day18.BoilingBoulders
+        Day18.BoilingBoulders,
+        Day19.Minerals
     hs-source-dirs: src
     build-depends:
-        megaparsec
+        megaparsec,
+        mtl
 
 test-suite test
     import: common-properties
@@ -74,7 +76,8 @@ test-suite test
         Day15.BeaconSpec,
         Day16.ValvesSpec,
         Day17.PyroclasticFlowSpec,
-        Day18.BoilingBouldersSpec
+        Day18.BoilingBouldersSpec,
+        Day19.MineralsSpec
     hs-source-dirs: test
     build-depends:
         advent-of-code,
