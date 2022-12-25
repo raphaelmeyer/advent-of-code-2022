@@ -58,8 +58,8 @@ spec = do
       Map.toList (M.maxRobots state) `shouldBe` [(M.Ore, 3), (M.Clay, 8), (M.Obsidian, 12)]
 
     it "should try to collect as much geode as possible" $ do
-      M.investigateBlueprint (input !! 0) `shouldBe` 9
-      M.investigateBlueprint (input !! 1) `shouldBe` 12
+      M.investigateBlueprint (input !! 0) 24 `shouldBe` 9
+      M.investigateBlueprint (input !! 1) 24 `shouldBe` 12
 
     it "should calculate the sum of quality levels" $ do
       M.qualityLevelSum input `shouldBe` 33

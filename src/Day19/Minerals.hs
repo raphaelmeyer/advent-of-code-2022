@@ -24,7 +24,7 @@ partOne :: [BluePrint] -> String
 partOne = show . qualityLevelSum
 
 partTwo :: [BluePrint] -> String
-partTwo _ = show (0 :: Int)
+partTwo = show . maxGeodeProduct
 
 data Mineral = Ore | Clay | Obsidian | Geode deriving (Eq, Ord, Show)
 
@@ -53,10 +53,13 @@ data State = State Minerals Robots Int deriving (Eq, Ord, Show)
 type Memo = Map.Map State Int
 
 qualityLevelSum :: [BluePrint] -> Int
-qualityLevelSum = sum . map (\bp -> blueprint bp * investigateBlueprint bp)
+qualityLevelSum = sum . map (\bp -> blueprint bp * investigateBlueprint bp 24)
 
-investigateBlueprint :: BluePrint -> Int
-investigateBlueprint bp = snd . collectGeode (initialState bp) $ Map.empty
+maxGeodeProduct :: [BluePrint] -> Int
+maxGeodeProduct = product . map (`investigateBlueprint` 32) . take 3
+
+investigateBlueprint :: BluePrint -> Int -> Int
+investigateBlueprint bp time = snd . collectGeode ((\s -> s {getTime = time}) . initialState $ bp) $ Map.empty
 
 collectGeode :: Collect -> Memo -> (Memo, Int)
 collectGeode s memo = case Map.lookup ms memo of
@@ -71,12 +74,15 @@ collectGeode s memo = case Map.lookup ms memo of
 collectStep :: Collect -> Memo -> (Memo, [Int])
 collectStep s memo = (memo'', noNewRobot : buildNewRobot)
   where
-    (memo', buildNewRobot) = foldl (tryBuild s) (memo, []) (chooseRobots buildable)
+    (memo', buildNewRobot) = if getTime s > 1 then foldl (tryBuild s) (memo, []) (chooseRobots buildable) else (memo, [])
     (memo'', noNewRobot) = (`collectGeode` memo') . updateTime . collectMinerals $ s {skipped = buildable}
     buildable = filter (`canBuildRobot` s) [Geode, Obsidian, Clay, Ore]
-    chooseRobots = filter (\robot -> Map.findWithDefault 25 robot (maxRobots s) > Map.findWithDefault 0 robot (getRobots s)) . filter (`notElem` skipped s)
-
--- chooseRobots
+    chooseRobots = filter useful . filter (`notElem` skipped s)
+    useful robot =
+      Map.findWithDefault 0 robot (getRobots s)
+        * getTime s
+        + Map.findWithDefault 0 robot (getMinerals s)
+        < (getTime s * Map.findWithDefault 50 robot (maxRobots s))
 
 initialState :: BluePrint -> Collect
 initialState bp = Collect bp Map.empty (Map.singleton Ore 1) 24 (robotLimits bp) []
