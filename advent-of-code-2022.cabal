@@ -48,7 +48,8 @@ library
         Day16.Valves,
         Day17.PyroclasticFlow,
         Day18.BoilingBoulders,
-        Day19.Minerals
+        Day19.Minerals,
+        Day25.Snafu
     hs-source-dirs: src
     build-depends:
         megaparsec,
@@ -77,7 +78,8 @@ test-suite test
         Day16.ValvesSpec,
         Day17.PyroclasticFlowSpec,
         Day18.BoilingBouldersSpec,
-        Day19.MineralsSpec
+        Day19.MineralsSpec,
+        Day25.SnafuSpec
     hs-source-dirs: test
     build-depends:
         advent-of-code,
