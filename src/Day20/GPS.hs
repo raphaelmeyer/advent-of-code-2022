@@ -17,27 +17,31 @@ solve = (partOne &&& partTwo) . parseInput . Text.lines . Text.pack
 -- solution
 
 partOne :: [Int] -> String
-partOne = show . sumMix
+partOne = show . mixSum 1 1
 
 partTwo :: [Int] -> String
-partTwo _ = show (0 :: Int)
+partTwo = show . mixSum 811589153 10
 
-sumMix :: [Int] -> Int
-sumMix input = sum . map (nthElement . mix $ input) $ [1000, 2000, 3000]
+mixSum :: Int -> Int -> [Int] -> Int
+mixSum key cycles file = sum . map (nthElement . mixNTimes key cycles $ file) $ [1000, 2000, 3000]
+
+type Values = Vector.Vector Int
+
+mixNTimes :: Int -> Int -> [Int] -> [Int]
+mixNTimes key n file = toValues . (!! n) . iterate (mix mods positions) $ positions
+  where
+    values = Vector.fromList . map (* key) $ file
+    mods = Vector.map (`mod` (Vector.length values - 1)) values
+    positions = [0 .. (Vector.length values - 1)]
+    toValues = map (values Vector.!)
 
 nthElement :: [Int] -> Int -> Int
 nthElement file n = case List.elemIndex 0 file of
   Just i -> file !! mod (i + n) (length file)
   Nothing -> undefined
 
-type Values = Vector.Vector Int
-
-mix :: [Int] -> [Int]
-mix file = toValues . foldl (mixNumber values) positions $ positions
-  where
-    values = Vector.fromList file
-    positions = [0 .. (Vector.length values - 1)]
-    toValues = map (values Vector.!)
+mix :: Values -> [Int] -> [Int] -> [Int]
+mix mods positions file = foldl (mixNumber mods) file positions
 
 mixNumber :: Values -> [Int] -> Int -> [Int]
 mixNumber values file n = case List.elemIndex n file of
@@ -54,8 +58,8 @@ move values i n file = if value == 0 then file else inserted
 
 normalize :: Int -> Int -> Int
 normalize len n
-  | n < 0 = normalize len (n + len)
-  | n > len = mod n len
+  | n < 0 = n + len
+  | n > len = n - len
   | otherwise = n
 
 -- parse input
