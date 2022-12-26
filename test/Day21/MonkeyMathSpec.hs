@@ -32,3 +32,10 @@ spec = do
 
     it "should calculate monkey math" $ do
       M.calc monkeys "root" `shouldBe` 152
+
+    it "should find number to yell" $ do
+      M.yell monkeys `shouldBe` 301
+
+    it "should find the human" $ do
+      M.findHuman monkeys "root" `shouldBe` Just ["root", "pppw", "cczh", "lgvd", "ptdq", "humn"]
+      M.findHuman monkeys "sjmn" `shouldBe` Nothing
