@@ -55,7 +55,6 @@ solutions =
     (Day17.solver, "data/day-17.txt"),
     (Day18.solver, "data/day-18.txt"),
     (Day19.solver, "data/day-19.txt"),
-    (Day19.solver, "data/day-19.txt"),
     (Day20.solver, "data/day-20.txt"),
     (Day21.solver, "data/day-21.txt"),
     (Day25.solver, "data/day-25.txt")
