@@ -51,6 +51,7 @@ library
         Day19.Minerals,
         Day20.GPS,
         Day21.MonkeyMath,
+        Day22.MonkeyMap,
         Day25.Snafu
 
     hs-source-dirs: src
@@ -84,6 +85,7 @@ test-suite test
         Day19.MineralsSpec,
         Day20.GPSSpec,
         Day21.MonkeyMathSpec,
+        Day22.MonkeyMapSpec,
         Day25.SnafuSpec
     hs-source-dirs: test
     build-depends:
