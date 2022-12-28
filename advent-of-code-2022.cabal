@@ -54,6 +54,7 @@ library
         Day21.MonkeyMath,
         Day22.MonkeyMap,
         Day23.UnstableDiffusion,
+        Day24.BlizzardBasin,
         Day25.Snafu
 
     hs-source-dirs: src
@@ -88,6 +89,7 @@ test-suite test
         Day21.MonkeyMathSpec,
         Day22.MonkeyMapSpec,
         Day23.UnstableDiffusionSpec,
+        Day24.BlizzardBasinSpec,
         Day25.SnafuSpec
     hs-source-dirs: test
     build-depends:
