@@ -27,14 +27,15 @@ exampleInput =
 spec :: Spec
 spec = do
   describe "Monkey Math" $ do
-    describe "Follow the path" $ do
+    describe "Follow the flat path" $ do
       let (monkeyMap, path) = M.parseInput exampleInput
+      let flat = M.getMovement monkeyMap M.Flat
 
       it "should calculate the final password" $ do
-        M.password monkeyMap path `shouldBe` 6032
+        M.password M.Flat monkeyMap path `shouldBe` 6032
 
       it "should know the final position" $ do
-        M.follow monkeyMap path `shouldBe` (((1, 1), (3, 1)), M.FaceRight)
+        M.follow flat monkeyMap path `shouldBe` (((1, 1), (3, 1)), M.FaceRight)
 
       it "should find the start position" $ do
         M.findStart monkeyMap `shouldBe` ((2, 0), (0, 0))
@@ -45,27 +46,42 @@ spec = do
         M.qLookup ((1, 2), (1, 2)) monkeyMap `shouldBe` Nothing
 
       it "should jump to next quadrants" $ do
-        M.moveRight monkeyMap ((2, 2), (2, 1)) 5 `shouldBe` ((3, 2), (0, 1))
-        M.moveLeft monkeyMap ((2, 1), (1, 0)) 5 `shouldBe` ((1, 1), (0, 0))
-        M.moveUp monkeyMap ((2, 1), (2, 2)) 5 `shouldBe` ((2, 0), (2, 1))
-        M.moveDown monkeyMap ((2, 0), (1, 3)) 5 `shouldBe` ((2, 2), (1, 0))
+        M.stepForward flat monkeyMap (((2, 2), (2, 1)), M.FaceRight) 5 `shouldBe` (((3, 2), (0, 1)), M.FaceRight)
+        M.stepForward flat monkeyMap (((2, 1), (1, 0)), M.FaceLeft) 5 `shouldBe` (((1, 1), (0, 0)), M.FaceLeft)
+        M.stepForward flat monkeyMap (((2, 1), (2, 2)), M.FaceUp) 5 `shouldBe` (((2, 0), (2, 1)), M.FaceUp)
+        M.stepForward flat monkeyMap (((2, 0), (1, 3)), M.FaceDown) 5 `shouldBe` (((2, 2), (1, 0)), M.FaceDown)
 
       it "should wrap around empty quadrants" $ do
-        M.moveRight monkeyMap ((3, 2), (2, 1)) 5 `shouldBe` ((2, 2), (3, 1))
-        M.moveRight monkeyMap ((3, 2), (2, 2)) 5 `shouldBe` ((2, 2), (0, 2))
-        M.moveRight monkeyMap ((2, 0), (2, 2)) 5 `shouldBe` ((2, 0), (3, 2))
+        M.stepForward flat monkeyMap (((3, 2), (2, 1)), M.FaceRight) 5 `shouldBe` (((2, 2), (3, 1)), M.FaceRight)
+        M.stepForward flat monkeyMap (((3, 2), (2, 2)), M.FaceRight) 5 `shouldBe` (((2, 2), (0, 2)), M.FaceRight)
+        M.stepForward flat monkeyMap (((2, 0), (2, 2)), M.FaceRight) 5 `shouldBe` (((2, 0), (3, 2)), M.FaceRight)
 
-        M.moveLeft monkeyMap ((0, 1), (3, 1)) 5 `shouldBe` ((2, 1), (2, 1))
-        M.moveLeft monkeyMap ((2, 2), (1, 3)) 5 `shouldBe` ((3, 2), (3, 3))
-        M.moveLeft monkeyMap ((0, 1), (2, 0)) 5 `shouldBe` ((0, 1), (0, 0))
+        M.stepForward flat monkeyMap (((0, 1), (3, 1)), M.FaceLeft) 5 `shouldBe` (((2, 1), (2, 1)), M.FaceLeft)
+        M.stepForward flat monkeyMap (((2, 2), (1, 3)), M.FaceLeft) 5 `shouldBe` (((3, 2), (3, 3)), M.FaceLeft)
+        M.stepForward flat monkeyMap (((0, 1), (2, 0)), M.FaceLeft) 5 `shouldBe` (((0, 1), (0, 0)), M.FaceLeft)
 
-        M.moveUp monkeyMap ((2, 0), (2, 2)) 5 `shouldBe` ((2, 2), (2, 1))
-        M.moveUp monkeyMap ((0, 1), (2, 0)) 5 `shouldBe` ((0, 1), (2, 3))
-        M.moveUp monkeyMap ((3, 2), (2, 1)) 5 `shouldBe` ((3, 2), (2, 0))
+        M.stepForward flat monkeyMap (((2, 0), (2, 2)), M.FaceUp) 5 `shouldBe` (((2, 2), (2, 1)), M.FaceUp)
+        M.stepForward flat monkeyMap (((0, 1), (2, 0)), M.FaceUp) 5 `shouldBe` (((0, 1), (2, 3)), M.FaceUp)
+        M.stepForward flat monkeyMap (((3, 2), (2, 1)), M.FaceUp) 5 `shouldBe` (((3, 2), (2, 0)), M.FaceUp)
 
-        M.moveDown monkeyMap ((3, 2), (3, 1)) 5 `shouldBe` ((3, 2), (3, 2))
-        M.moveDown monkeyMap ((2, 2), (0, 2)) 5 `shouldBe` ((2, 0), (0, 1))
-        M.moveDown monkeyMap ((0, 1), (3, 2)) 5 `shouldBe` ((0, 1), (3, 3))
+        M.stepForward flat monkeyMap (((3, 2), (3, 1)), M.FaceDown) 5 `shouldBe` (((3, 2), (3, 2)), M.FaceDown)
+        M.stepForward flat monkeyMap (((2, 2), (0, 2)), M.FaceDown) 5 `shouldBe` (((2, 0), (0, 1)), M.FaceDown)
+        M.stepForward flat monkeyMap (((0, 1), (3, 2)), M.FaceDown) 5 `shouldBe` (((0, 1), (3, 3)), M.FaceDown)
+
+    describe "Follow the cubic path" $ do
+      let (monkeyMap, path) = M.parseInput exampleInput
+      let cube = M.getMovement monkeyMap M.Cube
+
+      it "should calculate the final password" $ do
+        M.password M.Cube monkeyMap path `shouldBe` 5031
+
+      it "should know the final position" $ do
+        M.follow cube monkeyMap path `shouldBe` (((1, 1), (2, 0)), M.FaceUp)
+
+      it "should move and wrap around the cube" $ do
+        M.stepForward cube monkeyMap (((2, 1), (3, 1)), M.FaceRight) 1 `shouldBe` (((3, 2), (2, 0)), M.FaceDown)
+        M.stepForward cube monkeyMap (((2, 2), (2, 3)), M.FaceDown) 1 `shouldBe` (((0, 1), (1, 3)), M.FaceUp)
+        M.stepForward cube monkeyMap (((1, 1), (2, 0)), M.FaceUp) 1 `shouldBe` (((1, 1), (2, 0)), M.FaceUp)
 
     describe "Parse the input" $ do
       let (board, description) = M.splitInput exampleInput

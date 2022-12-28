@@ -25,10 +25,12 @@ solve = (partOne &&& partTwo) . parseInput . Text.lines . Text.pack
 -- solution
 
 partOne :: (MonkeyMap, Path) -> String
-partOne (monkeyMap, path) = show (password monkeyMap path)
+partOne (monkeyMap, path) = show (password Flat monkeyMap path)
 
 partTwo :: (MonkeyMap, Path) -> String
-partTwo _ = show (0 :: Int)
+partTwo (monkeyMap, path) = show (password Cube monkeyMap path)
+
+data MapType = Flat | Cube deriving (Eq, Show)
 
 data Tile = Open | Wall deriving (Eq, Show)
 
@@ -48,77 +50,40 @@ type QPos = (Pos, Pos)
 
 data Facing = FaceRight | FaceDown | FaceLeft | FaceUp deriving (Eq, Show)
 
-password :: MonkeyMap -> Path -> Int
-password monkeyMap path = 1000 * row + 4 * col + fValue facing
+password :: MapType -> MonkeyMap -> Path -> Int
+password mapType monkeyMap path = 1000 * row + 4 * col + fValue facing
   where
-    (((qx, qy), (x, y)), facing) = follow monkeyMap path
+    (((qx, qy), (x, y)), facing) = follow move monkeyMap path
     col = qx * getSideLen monkeyMap + x + 1
     row = qy * getSideLen monkeyMap + y + 1
     fValue FaceRight = 0
     fValue FaceDown = 1
     fValue FaceLeft = 2
     fValue FaceUp = 3
+    move = getMovement monkeyMap mapType
 
-follow :: MonkeyMap -> Path -> (QPos, Facing)
-follow monkeyMap = foldl (followStep monkeyMap) (findStart monkeyMap, FaceRight)
+follow :: Move -> MonkeyMap -> Path -> (QPos, Facing)
+follow move monkeyMap = foldl (followStep move monkeyMap) (findStart monkeyMap, FaceRight)
 
-followStep :: MonkeyMap -> (QPos, Facing) -> Instruction -> (QPos, Facing)
-followStep _ (pos, FaceRight) TurnLeft = (pos, FaceUp)
-followStep _ (pos, FaceDown) TurnLeft = (pos, FaceRight)
-followStep _ (pos, FaceLeft) TurnLeft = (pos, FaceDown)
-followStep _ (pos, FaceUp) TurnLeft = (pos, FaceLeft)
-followStep _ (pos, FaceRight) TurnRight = (pos, FaceDown)
-followStep _ (pos, FaceDown) TurnRight = (pos, FaceLeft)
-followStep _ (pos, FaceLeft) TurnRight = (pos, FaceUp)
-followStep _ (pos, FaceUp) TurnRight = (pos, FaceRight)
-followStep m (pos, FaceRight) (Forward n) = (moveRight m pos n, FaceRight)
-followStep m (pos, FaceDown) (Forward n) = (moveDown m pos n, FaceDown)
-followStep m (pos, FaceLeft) (Forward n) = (moveLeft m pos n, FaceLeft)
-followStep m (pos, FaceUp) (Forward n) = (moveUp m pos n, FaceUp)
+followStep :: Move -> MonkeyMap -> (QPos, Facing) -> Instruction -> (QPos, Facing)
+followStep _ _ (pos, FaceRight) TurnLeft = (pos, FaceUp)
+followStep _ _ (pos, FaceDown) TurnLeft = (pos, FaceRight)
+followStep _ _ (pos, FaceLeft) TurnLeft = (pos, FaceDown)
+followStep _ _ (pos, FaceUp) TurnLeft = (pos, FaceLeft)
+followStep _ _ (pos, FaceRight) TurnRight = (pos, FaceDown)
+followStep _ _ (pos, FaceDown) TurnRight = (pos, FaceLeft)
+followStep _ _ (pos, FaceLeft) TurnRight = (pos, FaceUp)
+followStep _ _ (pos, FaceUp) TurnRight = (pos, FaceRight)
+followStep move m (pos, facing) (Forward n) = stepForward move m (pos, facing) n
 
-moveRight :: MonkeyMap -> QPos -> Int -> QPos
-moveRight _ pos 0 = pos
-moveRight m old@((qx, qy), (x, y)) n = case qLookup next m of
-  Just Open -> moveRight m next (n - 1)
-  Just Wall -> old
-  _ -> undefined
+stepForward :: Move -> MonkeyMap -> (QPos, Facing) -> Int -> (QPos, Facing)
+stepForward _ _ pos 0 = pos
+stepForward move m pos n = case qLookup (fst next) m of
+  Just Open -> stepForward move m next (n - 1)
+  Just Wall -> pos
+  _ -> error (show pos ++ " -> " ++ show next)
   where
-    qn = maximum . map fst . Map.keys . getMap $ m
-    nextQ = head . dropWhile (\q -> quadrant m q == Empty) . tail $ iterate (\(i, j) -> if i >= qn then (0, j) else (i + 1, j)) (qx, qy)
-    next = if x + 1 < getSideLen m then ((qx, qy), (x + 1, y)) else (nextQ, (0, y))
-
-moveDown :: MonkeyMap -> QPos -> Int -> QPos
-moveDown _ pos 0 = pos
-moveDown m old@((qx, qy), (x, y)) n = case qLookup next m of
-  Just Open -> moveDown m next (n - 1)
-  Just Wall -> old
-  _ -> undefined
-  where
-    qn = maximum . map snd . Map.keys . getMap $ m
-    nextQ = head . dropWhile (\q -> quadrant m q == Empty) . tail $ iterate (\(i, j) -> if j >= qn then (i, 0) else (i, j + 1)) (qx, qy)
-    next = if y + 1 < getSideLen m then ((qx, qy), (x, y + 1)) else (nextQ, (x, 0))
-
-moveLeft :: MonkeyMap -> QPos -> Int -> QPos
-moveLeft _ pos 0 = pos
-moveLeft m old@((qx, qy), (x, y)) n = case qLookup next m of
-  Just Open -> moveLeft m next (n - 1)
-  Just Wall -> old
-  _ -> undefined
-  where
-    qn = maximum . map fst . Map.keys . getMap $ m
-    nextQ = head . dropWhile (\q -> quadrant m q == Empty) . tail $ iterate (\(i, j) -> if i <= 0 then (qn, j) else (i - 1, j)) (qx, qy)
-    next = if x - 1 >= 0 then ((qx, qy), (x - 1, y)) else (nextQ, (getSideLen m - 1, y))
-
-moveUp :: MonkeyMap -> QPos -> Int -> QPos
-moveUp _ pos 0 = pos
-moveUp m old@((qx, qy), (x, y)) n = case qLookup next m of
-  Just Open -> moveUp m next (n - 1)
-  Just Wall -> old
-  _ -> undefined
-  where
-    qn = maximum . map snd . Map.keys . getMap $ m
-    nextQ = head . dropWhile (\q -> quadrant m q == Empty) . tail $ iterate (\(i, j) -> if j <= 0 then (i, qn) else (i, j - 1)) (qx, qy)
-    next = if y - 1 >= 0 then ((qx, qy), (x, y - 1)) else (nextQ, (x, getSideLen m - 1))
+    next = go move pos
 
 findStart :: MonkeyMap -> QPos
 findStart monkeyMap = firstOpen . filter (\(_, y) -> y == 0) . Map.keys . getMap $ monkeyMap
@@ -141,6 +106,167 @@ at grid (x, y) = (grid Vector.! y) Vector.! x
 
 quadrant :: MonkeyMap -> Pos -> Quadrant
 quadrant mm pos = Maybe.fromMaybe Empty (Map.lookup pos . getMap $ mm)
+
+-- moving and wrapping
+
+newtype Move = Move {go :: (QPos, Facing) -> (QPos, Facing)}
+
+getMovement :: MonkeyMap -> MapType -> Move
+getMovement monkeyMap mapType = getMovement' mapType len folding
+  where
+    len = getSideLen monkeyMap
+    folding = Map.keys . getMap $ monkeyMap
+
+getMovement' :: MapType -> Int -> [Pos] -> Move
+getMovement' Flat len [(0, 1), (1, 1), (2, 0), (2, 1), (2, 2), (3, 2)] = Move {go = exampleFlat len}
+getMovement' Cube len [(0, 1), (1, 1), (2, 0), (2, 1), (2, 2), (3, 2)] = Move {go = exampleCube len}
+getMovement' Flat len [(0, 2), (0, 3), (1, 0), (1, 1), (1, 2), (2, 0)] = Move {go = inputFlat len}
+getMovement' Cube len [(0, 2), (0, 3), (1, 0), (1, 1), (1, 2), (2, 0)] = Move {go = inputCube len}
+getMovement' _ _ f = error ("movement for folding " ++ show f ++ " is left as an exercise to the reader")
+
+-- move and wrap on example flat map
+
+exampleFlat :: Int -> (QPos, Facing) -> (QPos, Facing)
+exampleFlat len ((q, (x, y)), FaceRight)
+  | x == len - 1 && q == (0, 1) = (((1, 1), (0, y)), FaceRight)
+  | x == len - 1 && q == (1, 1) = (((2, 1), (0, y)), FaceRight)
+  | x == len - 1 && q == (2, 0) = (((2, 0), (0, y)), FaceRight)
+  | x == len - 1 && q == (2, 1) = (((0, 1), (0, y)), FaceRight)
+  | x == len - 1 && q == (2, 2) = (((3, 2), (0, y)), FaceRight)
+  | x == len - 1 && q == (3, 2) = (((2, 2), (0, y)), FaceRight)
+  | otherwise = ((q, (x + 1, y)), FaceRight)
+exampleFlat len ((q, (x, y)), FaceLeft)
+  | x == 0 && q == (0, 1) = (((2, 1), (len - 1, y)), FaceLeft)
+  | x == 0 && q == (1, 1) = (((0, 1), (len - 1, y)), FaceLeft)
+  | x == 0 && q == (2, 0) = (((2, 0), (len - 1, y)), FaceLeft)
+  | x == 0 && q == (2, 1) = (((1, 1), (len - 1, y)), FaceLeft)
+  | x == 0 && q == (2, 2) = (((3, 2), (len - 1, y)), FaceLeft)
+  | x == 0 && q == (3, 2) = (((2, 2), (len - 1, y)), FaceLeft)
+  | otherwise = ((q, (x - 1, y)), FaceLeft)
+exampleFlat len ((q, (x, y)), FaceDown)
+  | y == len - 1 && q == (0, 1) = (((0, 1), (x, 0)), FaceDown)
+  | y == len - 1 && q == (1, 1) = (((1, 1), (x, 0)), FaceDown)
+  | y == len - 1 && q == (2, 0) = (((2, 1), (x, 0)), FaceDown)
+  | y == len - 1 && q == (2, 1) = (((2, 2), (x, 0)), FaceDown)
+  | y == len - 1 && q == (2, 2) = (((2, 0), (x, 0)), FaceDown)
+  | y == len - 1 && q == (3, 2) = (((3, 2), (x, 0)), FaceDown)
+  | otherwise = ((q, (x, y + 1)), FaceDown)
+exampleFlat len ((q, (x, y)), FaceUp)
+  | y == 0 && q == (0, 1) = (((0, 1), (x, len - 1)), FaceUp)
+  | y == 0 && q == (1, 1) = (((1, 1), (x, len - 1)), FaceUp)
+  | y == 0 && q == (2, 0) = (((2, 2), (x, len - 1)), FaceUp)
+  | y == 0 && q == (2, 1) = (((2, 0), (x, len - 1)), FaceUp)
+  | y == 0 && q == (2, 2) = (((2, 1), (x, len - 1)), FaceUp)
+  | y == 0 && q == (3, 2) = (((3, 2), (x, len - 1)), FaceUp)
+  | otherwise = ((q, (x, y - 1)), FaceUp)
+
+-- move and wrap on example cube
+
+exampleCube :: Int -> (QPos, Facing) -> (QPos, Facing)
+exampleCube len ((q, (x, y)), FaceRight)
+  | x == len - 1 && q == (0, 1) = (((1, 1), (0, y)), FaceRight)
+  | x == len - 1 && q == (1, 1) = (((2, 1), (0, y)), FaceRight)
+  | x == len - 1 && q == (2, 0) = (((3, 2), (len - 1, len - 1 - y)), FaceLeft)
+  | x == len - 1 && q == (2, 1) = (((3, 2), (len - 1 - y, 0)), FaceDown)
+  | x == len - 1 && q == (2, 2) = (((3, 2), (0, y)), FaceRight)
+  | x == len - 1 && q == (3, 2) = (((2, 0), (len - 1, len - 1 - y)), FaceLeft)
+  | otherwise = ((q, (x + 1, y)), FaceRight)
+exampleCube len ((q, (x, y)), FaceLeft)
+  | x == 0 && q == (0, 1) = (((3, 2), (len - 1 - y, len - 1)), FaceUp)
+  | x == 0 && q == (1, 1) = (((0, 1), (len - 1, y)), FaceLeft)
+  | x == 0 && q == (2, 0) = (((1, 1), (y, 0)), FaceDown)
+  | x == 0 && q == (2, 1) = (((1, 1), (len - 1, y)), FaceLeft)
+  | x == 0 && q == (2, 2) = (((1, 1), (len - 1 - y, len - 1)), FaceUp)
+  | x == 0 && q == (3, 2) = (((2, 2), (len - 1, y)), FaceLeft)
+  | otherwise = ((q, (x - 1, y)), FaceLeft)
+exampleCube len ((q, (x, y)), FaceDown)
+  | y == len - 1 && q == (0, 1) = (((2, 2), (len - 1 - x, len - 1)), FaceUp)
+  | y == len - 1 && q == (1, 1) = (((2, 2), (0, x)), FaceRight)
+  | y == len - 1 && q == (2, 0) = (((2, 1), (x, 0)), FaceDown)
+  | y == len - 1 && q == (2, 1) = (((2, 2), (x, 0)), FaceDown)
+  | y == len - 1 && q == (2, 2) = (((0, 1), (len - 1 - x, len - 1)), FaceUp)
+  | y == len - 1 && q == (3, 2) = (((0, 1), (0, len - 1 - x)), FaceRight)
+  | otherwise = ((q, (x, y + 1)), FaceDown)
+exampleCube len ((q, (x, y)), FaceUp)
+  | y == 0 && q == (0, 1) = (((2, 0), (len - 1 - x, 0)), FaceDown)
+  | y == 0 && q == (1, 1) = (((2, 0), (0, x)), FaceRight)
+  | y == 0 && q == (2, 0) = (((0, 1), (len - 1 - x, 0)), FaceDown)
+  | y == 0 && q == (2, 1) = (((2, 0), (x, len - 1)), FaceUp)
+  | y == 0 && q == (2, 2) = (((2, 1), (x, len - 1)), FaceUp)
+  | y == 0 && q == (3, 2) = (((2, 1), (len - 1, len - 1 - x)), FaceLeft)
+  | otherwise = ((q, (x, y - 1)), FaceUp)
+
+-- move and wrap on input flat map
+
+inputFlat :: Int -> (QPos, Facing) -> (QPos, Facing)
+inputFlat len ((q, (x, y)), FaceRight)
+  | x == len - 1 && q == (0, 2) = (((1, 2), (0, y)), FaceRight)
+  | x == len - 1 && q == (0, 3) = (((0, 3), (0, y)), FaceRight)
+  | x == len - 1 && q == (1, 0) = (((2, 0), (0, y)), FaceRight)
+  | x == len - 1 && q == (1, 1) = (((1, 1), (0, y)), FaceRight)
+  | x == len - 1 && q == (1, 2) = (((0, 2), (0, y)), FaceRight)
+  | x == len - 1 && q == (2, 0) = (((1, 0), (0, y)), FaceRight)
+  | otherwise = ((q, (x + 1, y)), FaceRight)
+inputFlat len ((q, (x, y)), FaceLeft)
+  | x == 0 && q == (0, 2) = (((1, 2), (len - 1, y)), FaceLeft)
+  | x == 0 && q == (0, 3) = (((0, 3), (len - 1, y)), FaceLeft)
+  | x == 0 && q == (1, 0) = (((2, 0), (len - 1, y)), FaceLeft)
+  | x == 0 && q == (1, 1) = (((1, 1), (len - 1, y)), FaceLeft)
+  | x == 0 && q == (1, 2) = (((0, 2), (len - 1, y)), FaceLeft)
+  | x == 0 && q == (2, 0) = (((1, 0), (len - 1, y)), FaceLeft)
+  | otherwise = ((q, (x - 1, y)), FaceLeft)
+inputFlat len ((q, (x, y)), FaceDown)
+  | y == len - 1 && q == (0, 2) = (((0, 3), (x, 0)), FaceDown)
+  | y == len - 1 && q == (0, 3) = (((0, 2), (x, 0)), FaceDown)
+  | y == len - 1 && q == (1, 0) = (((1, 1), (x, 0)), FaceDown)
+  | y == len - 1 && q == (1, 1) = (((1, 2), (x, 0)), FaceDown)
+  | y == len - 1 && q == (1, 2) = (((1, 0), (x, 0)), FaceDown)
+  | y == len - 1 && q == (2, 0) = (((2, 0), (x, 0)), FaceDown)
+  | otherwise = ((q, (x, y + 1)), FaceDown)
+inputFlat len ((q, (x, y)), FaceUp)
+  | y == 0 && q == (0, 2) = (((0, 3), (x, len - 1)), FaceUp)
+  | y == 0 && q == (0, 3) = (((0, 2), (x, len - 1)), FaceUp)
+  | y == 0 && q == (1, 0) = (((1, 2), (x, len - 1)), FaceUp)
+  | y == 0 && q == (1, 1) = (((1, 0), (x, len - 1)), FaceUp)
+  | y == 0 && q == (1, 2) = (((1, 1), (x, len - 1)), FaceUp)
+  | y == 0 && q == (2, 0) = (((2, 0), (x, len - 1)), FaceUp)
+  | otherwise = ((q, (x, y - 1)), FaceUp)
+
+-- move and wrap on input cube
+
+inputCube :: Int -> (QPos, Facing) -> (QPos, Facing)
+inputCube len ((q, (x, y)), FaceRight)
+  | x == len - 1 && q == (0, 2) = (((1, 2), (0, y)), FaceRight)
+  | x == len - 1 && q == (0, 3) = (((1, 2), (y, len - 1)), FaceUp)
+  | x == len - 1 && q == (1, 0) = (((2, 0), (0, y)), FaceRight)
+  | x == len - 1 && q == (1, 1) = (((2, 0), (y, len - 1)), FaceUp)
+  | x == len - 1 && q == (1, 2) = (((2, 0), (len - 1, len - 1 - y)), FaceLeft)
+  | x == len - 1 && q == (2, 0) = (((1, 2), (len - 1, len - 1 - y)), FaceLeft)
+  | otherwise = ((q, (x + 1, y)), FaceRight)
+inputCube len ((q, (x, y)), FaceLeft)
+  | x == 0 && q == (0, 2) = (((1, 0), (0, len - 1 - y)), FaceRight)
+  | x == 0 && q == (0, 3) = (((1, 0), (y, 0)), FaceDown)
+  | x == 0 && q == (1, 0) = (((0, 2), (0, len - 1 - y)), FaceRight)
+  | x == 0 && q == (1, 1) = (((0, 2), (y, 0)), FaceDown)
+  | x == 0 && q == (1, 2) = (((0, 2), (len - 1, y)), FaceLeft)
+  | x == 0 && q == (2, 0) = (((1, 0), (len - 1, y)), FaceLeft)
+  | otherwise = ((q, (x - 1, y)), FaceLeft)
+inputCube len ((q, (x, y)), FaceDown)
+  | y == len - 1 && q == (0, 2) = (((0, 3), (x, 0)), FaceDown)
+  | y == len - 1 && q == (0, 3) = (((2, 0), (x, 0)), FaceDown)
+  | y == len - 1 && q == (1, 0) = (((1, 1), (x, 0)), FaceDown)
+  | y == len - 1 && q == (1, 1) = (((1, 2), (x, 0)), FaceDown)
+  | y == len - 1 && q == (1, 2) = (((0, 3), (len - 1, x)), FaceLeft)
+  | y == len - 1 && q == (2, 0) = (((1, 1), (len - 1, x)), FaceLeft)
+  | otherwise = ((q, (x, y + 1)), FaceDown)
+inputCube len ((q, (x, y)), FaceUp)
+  | y == 0 && q == (0, 2) = (((1, 1), (0, x)), FaceRight)
+  | y == 0 && q == (0, 3) = (((0, 2), (x, len - 1)), FaceUp)
+  | y == 0 && q == (1, 0) = (((0, 3), (0, x)), FaceRight)
+  | y == 0 && q == (1, 1) = (((1, 0), (x, len - 1)), FaceUp)
+  | y == 0 && q == (1, 2) = (((1, 1), (x, len - 1)), FaceUp)
+  | y == 0 && q == (2, 0) = (((0, 3), (x, len - 1)), FaceUp)
+  | otherwise = ((q, (x, y - 1)), FaceUp)
 
 -- parse input
 
