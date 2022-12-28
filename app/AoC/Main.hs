@@ -27,6 +27,7 @@ import qualified Day19.Minerals as Day19
 import qualified Day20.GPS as Day20
 import qualified Day21.MonkeyMath as Day21
 import qualified Day22.MonkeyMap as Day22
+import qualified Day23.UnstableDiffusion as Day23
 import qualified Day25.Snafu as Day25
 import qualified Options.Applicative as Opt
 
@@ -59,6 +60,7 @@ solutions =
     (Day20.solver, "data/day-20.txt"),
     (Day21.solver, "data/day-21.txt"),
     (Day22.solver, "data/day-22.txt"),
+    (Day23.solver, "data/day-23.txt"),
     (Day25.solver, "data/day-25.txt")
   ]
 

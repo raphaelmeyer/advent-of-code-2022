@@ -13,6 +13,7 @@ common common-properties
         base,
         containers,
         extra,
+        mtl,
         split,
         text,
         vector
@@ -52,12 +53,12 @@ library
         Day20.GPS,
         Day21.MonkeyMath,
         Day22.MonkeyMap,
+        Day23.UnstableDiffusion,
         Day25.Snafu
 
     hs-source-dirs: src
     build-depends:
-        megaparsec,
-        mtl
+        megaparsec
 
 test-suite test
     import: common-properties
@@ -86,6 +87,7 @@ test-suite test
         Day20.GPSSpec,
         Day21.MonkeyMathSpec,
         Day22.MonkeyMapSpec,
+        Day23.UnstableDiffusionSpec,
         Day25.SnafuSpec
     hs-source-dirs: test
     build-depends:
