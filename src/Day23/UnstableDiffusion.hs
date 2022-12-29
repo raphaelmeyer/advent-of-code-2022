@@ -32,7 +32,18 @@ partOne :: Elves -> String
 partOne = show . checkProgress
 
 partTwo :: Elves -> String
-partTwo _ = show (0 :: Int)
+partTwo = show . simulate
+
+simulate :: Elves -> Int
+simulate elves = S.evalState (simulate' 1) $ State elves [North, South, West, East]
+  where
+    simulate' n = do
+      before <- S.get
+      elfRound
+      after <- S.get
+      if elfPositions before == elfPositions after
+        then return n
+        else simulate' (n + 1)
 
 checkProgress :: Elves -> Int
 checkProgress elves = countEmpty . (!! 10) . iterate (S.execState elfRound) $ State elves [North, South, West, East]

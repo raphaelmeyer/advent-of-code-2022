@@ -39,6 +39,9 @@ spec = do
     it "should check the progress toward covering enough ground" $ do
       E.checkProgress elves `shouldBe` 110
 
+    it "should finish simulating the process" $ do
+      E.simulate elves `shouldBe` 20
+
   describe "Small example" $ do
     let elves = E.parseInput [".....", "..##.", "..#..", ".....", "..##.", "....."]
 
