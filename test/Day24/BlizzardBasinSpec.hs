@@ -3,6 +3,7 @@
 module Day24.BlizzardBasinSpec where
 
 import qualified Data.List as List
+import qualified Data.Set as Set
 import qualified Data.Text as Text
 import qualified Day24.BlizzardBasin as B
 import Test.Hspec
@@ -24,7 +25,7 @@ spec = do
       let s = B.parseInput exampleInput
 
       it "should find entry and exit" $ do
-        B.positions s `shouldBe` [(0, -1)]
+        Set.toList (B.positions s) `shouldBe` [(0, -1)]
         B.goal s `shouldBe` (5, 4)
 
       it "should register all blizzards" $ do

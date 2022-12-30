@@ -4,6 +4,7 @@ import qualified AoC.Puzzle as Puzzle
 import qualified Control.Monad.State as S
 import qualified Data.List as List
 import qualified Data.Maybe as Maybe
+import qualified Data.Set as Set
 import qualified Data.Text as Text
 import Data.Tuple.Extra ((&&&))
 
@@ -21,7 +22,7 @@ type Blizzard = (Pos, Direction)
 
 type Blizzards = [Blizzard]
 
-data State = State {blizzards :: Blizzards, positions :: [Pos], time :: Int, start :: Pos, goal :: Pos, width :: Int, height :: Int} deriving (Eq, Show)
+data State = State {blizzards :: Blizzards, positions :: Set.Set Pos, time :: Int, start :: Pos, goal :: Pos, width :: Int, height :: Int} deriving (Eq, Show)
 
 -- solution
 
@@ -35,10 +36,10 @@ goForExit :: State -> Int
 goForExit s = S.evalState takeStep $ s {time = 0}
 
 goForSnack :: State -> Int
-goForSnack s = S.evalState takeStep $ back {positions = [start s], start = start s, goal = goal s}
+goForSnack s = S.evalState takeStep $ back {positions = Set.singleton (start s), start = start s, goal = goal s}
   where
     there = S.execState takeStep $ s {time = 0}
-    back = S.execState takeStep $ there {positions = [goal s], start = goal s, goal = start s}
+    back = S.execState takeStep $ there {positions = Set.singleton (goal s), start = goal s, goal = start s}
 
 takeStep :: S.State State Int
 takeStep = do
@@ -54,7 +55,7 @@ updateBlizzards :: S.State State ()
 updateBlizzards = S.modify (\s -> s {blizzards = map (updateBlizzard (width s) (height s)) (blizzards s)})
 
 updatePositions :: S.State State ()
-updatePositions = S.modify (\s -> s {positions = foldl (updatePosition s) [] (positions s)})
+updatePositions = S.modify (\s -> s {positions = foldl (updatePosition s) Set.empty (positions s)})
 
 updateTime :: S.State State ()
 updateTime = S.modify (\s -> s {time = time s + 1})
@@ -73,8 +74,8 @@ updateBlizzard w _ ((x, y), MoveRight)
   | x == w - 1 = ((0, y), MoveRight)
   | otherwise = ((x + 1, y), MoveRight)
 
-updatePosition :: State -> [Pos] -> Pos -> [Pos]
-updatePosition s ps pos = List.nub $ ps ++ reachable
+updatePosition :: State -> Set.Set Pos -> Pos -> Set.Set Pos
+updatePosition s ps pos = foldr Set.insert ps reachable
   where
     reachable = filter (\p@(x, y) -> p == start s || p == goal s || (0 <= x && x < w && 0 <= y && y < h)) noBlizzard
     noBlizzard = filter (Maybe.isNothing . (`List.lookup` blizzards s)) adjacent
@@ -85,7 +86,7 @@ updatePosition s ps pos = List.nub $ ps ++ reachable
 -- parse input
 
 parseInput :: [Text.Text] -> State
-parseInput input = State {blizzards = blizzs, positions = [entry], time = 0, start = entry, goal = exit, width = w, height = h}
+parseInput input = State {blizzards = blizzs, positions = Set.singleton entry, time = 0, start = entry, goal = exit, width = w, height = h}
   where
     blizzs = foldl parseRow [] . zip [0 ..] . tail . init $ input
     entry = (hole (head input), -1)
