@@ -29,10 +29,16 @@ partOne :: State -> String
 partOne = show . goForExit
 
 partTwo :: State -> String
-partTwo _ = show (0 :: Int)
+partTwo = show . goForSnack
 
 goForExit :: State -> Int
 goForExit s = S.evalState takeStep $ s {time = 0}
+
+goForSnack :: State -> Int
+goForSnack s = S.evalState takeStep $ back {positions = [start s], start = start s, goal = goal s}
+  where
+    there = S.execState takeStep $ s {time = 0}
+    back = S.execState takeStep $ there {positions = [goal s], start = goal s, goal = start s}
 
 takeStep :: S.State State Int
 takeStep = do

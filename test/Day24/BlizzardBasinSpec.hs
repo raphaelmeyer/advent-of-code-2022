@@ -37,3 +37,6 @@ spec = do
 
       it "should find the exit" $ do
         B.goForExit s `shouldBe` 18
+
+      it "should go back for the snack" $ do
+        B.goForSnack s `shouldBe` 54
