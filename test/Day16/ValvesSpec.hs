@@ -25,27 +25,20 @@ spec :: Spec
 spec = do
   describe "Proboscidea Volcanium" $ do
     let valves = Valves.parseInput exampleInput
-
-    it "should create reduced graph of tubes and pipes" $ do
-      let graph = Valves.makeGraph valves
-
-      Map.size (Valves.vertices graph) `shouldBe` 7
-      Map.size (Valves.edges graph) `shouldBe` 7
-
-      Map.lookup "AA" (Valves.vertices graph) `shouldBe` Just 0
-      Map.lookup "HH" (Valves.vertices graph) `shouldBe` Just 22
-      Map.lookup "FF" (Valves.vertices graph) `shouldBe` Nothing
-
-      Map.lookup ("AA", "JJ") (Valves.edges graph) `shouldBe` Just 2
-      Map.lookup ("EE", "HH") (Valves.edges graph) `shouldBe` Just 3
-      Map.lookup ("AA", "II") (Valves.edges graph) `shouldBe` Nothing
+    let graph = Valves.makeGraph valves
 
     it "should find the most pressure you can release" $ do
-      Valves.mostPressure valves `shouldBe` 1651
+      Valves.mostPressure graph `shouldBe` 1651
+
+    it "should identify all functioning valves" $ do
+      Valves.vertices graph Map.!? "BB" `shouldBe` Just 13
+      Valves.vertices graph Map.!? "HH" `shouldBe` Just 22
+      Valves.vertices graph Map.!? "II" `shouldBe` Nothing
 
     it "should find all shortest paths from any valve to any other" $ do
-      let graph = Valves.makeGraph valves
-      let paths = Valves.shortestPath graph "BB"
+      Valves.edges graph Map.! ("AA", "EE") `shouldBe` 2
+      Valves.edges graph Map.! ("BB", "DD") `shouldBe` 2
+      Valves.edges graph Map.! ("BB", "HH") `shouldBe` 6
 
-      (Map.!) paths "DD" `shouldBe` 2
-      (Map.!) paths "HH" `shouldBe` 6
+    it "should train an elephant for help" $ do
+      Valves.withElephant graph `shouldBe` 1707
