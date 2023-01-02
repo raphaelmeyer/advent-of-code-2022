@@ -2,6 +2,7 @@
 
 module Day19.MineralsSpec where
 
+import qualified Control.Monad.State as S
 import qualified Data.Map.Strict as Map
 import qualified Data.Text as Text
 import qualified Day19.Minerals as M
@@ -22,44 +23,67 @@ spec = do
       length input `shouldBe` 2
       let blueprint = input !! 1
 
-      M.blueprint blueprint `shouldBe` 2
-      Map.lookup M.Ore (M.costs blueprint) `shouldBe` Just [M.Cost M.Ore 2]
-      Map.lookup M.Geode (M.costs blueprint) `shouldBe` Just [M.Cost M.Ore 3, M.Cost M.Obsidian 12]
+      M.blueprintId blueprint `shouldBe` 2
+      Map.lookup M.Ore (M.buildCosts blueprint) `shouldBe` Just [M.Cost M.Ore 2]
+      Map.lookup M.Geode (M.buildCosts blueprint) `shouldBe` Just [M.Cost M.Ore 3, M.Cost M.Obsidian 12]
 
-    it "should determine what robots can be build with the current resources" $ do
-      let state = (\s -> s {M.getMinerals = Map.fromList [(M.Obsidian, 10), (M.Clay, 14), (M.Ore, 3)]}) . M.initialState $ head input
-      state `shouldSatisfy` M.canBuildRobot M.Geode
-      state `shouldSatisfy` M.canBuildRobot M.Obsidian
-      state `shouldSatisfy` M.canBuildRobot M.Clay
-      state `shouldNotSatisfy` M.canBuildRobot M.Ore
+    it "should check whether a robot can be built" $ do
+      let blueprint = input !! 1
+      let config = M.configuration blueprint
+      let s = M.State {M.getMinerals = Map.empty, M.getRobots = Map.empty, M.getTime = 24}
 
-      let state2 = (\s -> s {M.getMinerals = Map.fromList [(M.Obsidian, 6), (M.Clay, 5), (M.Ore, 4)]}) . M.initialState $ head input
-      state2 `shouldNotSatisfy` M.canBuildRobot M.Geode
-      state2 `shouldNotSatisfy` M.canBuildRobot M.Obsidian
-      state2 `shouldSatisfy` M.canBuildRobot M.Clay
-      state2 `shouldSatisfy` M.canBuildRobot M.Ore
+      M.Ore `shouldNotSatisfy` M.buildable config (s {M.getRobots = Map.empty})
+      M.Ore `shouldSatisfy` M.buildable config (s {M.getRobots = Map.singleton M.Ore 1})
 
-    it "should build robots" $ do
-      let state = (\s -> s {M.getMinerals = Map.fromList [(M.Obsidian, 10), (M.Clay, 10), (M.Ore, 10)], M.getRobots = Map.fromList [(M.Clay, 1), (M.Ore, 2)]}) . M.initialState $ head input
-      let build r = M.launchRobot r . M.buildRobot r
-      let built = build M.Ore . build M.Geode $ state
+      M.Clay `shouldNotSatisfy` M.buildable config (s {M.getRobots = Map.empty})
+      M.Clay `shouldSatisfy` M.buildable config (s {M.getRobots = Map.singleton M.Ore 1})
 
-      Map.toList (M.getRobots built) `shouldMatchList` [(M.Geode, 1), (M.Clay, 1), (M.Ore, 3)]
-      Map.toList (M.getMinerals built) `shouldMatchList` [(M.Obsidian, 3), (M.Clay, 10), (M.Ore, 4)]
+      M.Obsidian `shouldNotSatisfy` M.buildable config (s {M.getRobots = Map.empty})
+      M.Obsidian `shouldNotSatisfy` M.buildable config (s {M.getRobots = Map.singleton M.Ore 1})
+      M.Obsidian `shouldNotSatisfy` M.buildable config (s {M.getRobots = Map.singleton M.Clay 1})
+      M.Obsidian `shouldSatisfy` M.buildable config (s {M.getRobots = Map.fromList [(M.Ore, 1), (M.Clay, 1)]})
 
-    it "should collect minerals" $ do
-      let state = (\s -> s {M.getMinerals = Map.fromList [(M.Geode, 3), (M.Clay, 3)], M.getRobots = Map.fromList [(M.Geode, 2), (M.Obsidian, 1)]}) . M.initialState $ head input
-      let collected = M.collectMinerals state
+      M.Geode `shouldNotSatisfy` M.buildable config (s {M.getRobots = Map.fromList [(M.Ore, 1), (M.Clay, 1)]})
+      M.Geode `shouldSatisfy` M.buildable config (s {M.getRobots = Map.fromList [(M.Ore, 1), (M.Obsidian, 1)]})
 
-      Map.toList (M.getMinerals collected) `shouldMatchList` [(M.Geode, 5), (M.Obsidian, 1), (M.Clay, 3)]
+    it "should calculate the additionaly required minerals" $ do
+      M.requiredMinerals [M.Cost M.Ore 2, M.Cost M.Clay 3] (Map.fromList [(M.Ore, 1), (M.Clay, 1)]) `shouldMatchList` [(M.Ore, 1), (M.Clay, 2)]
+      M.requiredMinerals [M.Cost M.Ore 2, M.Cost M.Clay 3] (Map.fromList [(M.Ore, 2), (M.Clay, 3)]) `shouldMatchList` []
+      M.requiredMinerals [M.Cost M.Ore 2, M.Cost M.Clay 3] (Map.fromList [(M.Ore, 4)]) `shouldMatchList` [(M.Clay, 3)]
+      M.requiredMinerals [M.Cost M.Ore 4, M.Cost M.Obsidian 5] Map.empty `shouldMatchList` [(M.Ore, 4), (M.Obsidian, 5)]
 
     it "should calculate the limit of any robot required" $ do
-      let state = M.initialState (input !! 1)
-      Map.toList (M.maxRobots state) `shouldBe` [(M.Ore, 3), (M.Clay, 8), (M.Obsidian, 12)]
+      Map.toList (M.robotLimits (input !! 1)) `shouldBe` [(M.Ore, 3), (M.Clay, 8), (M.Obsidian, 12)]
 
-    it "should try to collect as much geode as possible" $ do
-      M.investigateBlueprint (input !! 0) 24 `shouldBe` 9
-      M.investigateBlueprint (input !! 1) 24 `shouldBe` 12
+    describe "Build robots and mine minerals" $ do
+      let blueprint = input !! 1
+      let config = M.configuration blueprint
 
-    it "should calculate the sum of quality levels" $ do
-      M.qualityLevelSum input `shouldBe` 33
+      it "should build robots if resources are already available" $ do
+        let s = S.execState (M.mineAndBuild config M.Obsidian) (M.State (Map.fromList [(M.Ore, 3), (M.Clay, 10)]) (Map.fromList [(M.Obsidian, 2)]) 24)
+
+        (Map.toList . M.getMinerals $ s) `shouldMatchList` [(M.Ore, 0), (M.Clay, 2), (M.Obsidian, 2)]
+        (Map.toList . M.getRobots $ s) `shouldMatchList` [(M.Obsidian, 3)]
+        M.getTime s `shouldBe` 23
+
+      it "should mine until enough resources available and then build robots" $ do
+        let s = S.execState (M.mineAndBuild config M.Geode) (M.State (Map.fromList [(M.Obsidian, 3)]) (Map.fromList [(M.Ore, 1), (M.Obsidian, 2)]) 24)
+
+        (Map.toList . M.getMinerals $ s) `shouldMatchList` [(M.Ore, 3), (M.Obsidian, 3)]
+        (Map.toList . M.getRobots $ s) `shouldMatchList` [(M.Ore, 1), (M.Obsidian, 2), (M.Geode, 1)]
+        M.getTime s `shouldBe` 18
+
+      it "should not build a robot when not enough time" $ do
+        let s = S.execState (M.mineAndBuild config M.Obsidian) (M.State Map.empty (Map.fromList [(M.Ore, 3), (M.Clay, 1), (M.Obsidian, 2)]) 5)
+
+        (Map.toList . M.getMinerals $ s) `shouldMatchList` [(M.Ore, 15), (M.Clay, 5), (M.Obsidian, 10)]
+        (Map.toList . M.getRobots $ s) `shouldMatchList` [(M.Ore, 3), (M.Clay, 1), (M.Obsidian, 2)]
+        M.getTime s `shouldBe` 0
+
+    describe "Collect geode and calculate quality levels" $ do
+      it "should try to collect as much geode as possible" $ do
+        M.investigateBlueprint (input !! 0) 24 `shouldBe` 9
+        M.investigateBlueprint (input !! 1) 24 `shouldBe` 12
+
+      it "should calculate the sum of quality levels" $ do
+        M.qualityLevelSum input `shouldBe` 33
